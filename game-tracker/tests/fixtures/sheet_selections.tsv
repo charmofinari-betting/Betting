@@ -1,0 +1,662 @@
+selection	sport	old_label
+ML HOME	Basketball	Moneyline
+HOME 1.5	Basketball	Spread - underdog
+HOME -2.5	Basketball	Spread - favourite
+HOME -0.5	Football	Asian handicap - giving
+HOME 0.0	Football	Draw no bet (0.0)
+AWAY -0.5	Football	Asian handicap - giving
+CARDS UNDER 4.5	Football	Cards Under
+HOME -0.5	Basketball	Spread - favourite
+HOME -1.5	Basketball	Spread - favourite
+HOME -2.5	Basketball	Spread - favourite
+HOME -3.5	Basketball	Spread - favourite
+ML HOME	Basketball	Moneyline
+ML AWAY	Basketball	Moneyline
+HOME -3.5	Basketball	Spread - favourite
+HOME -4.5	Basketball	Spread - favourite
+OVER 167.5	Basketball	Points Over
+OVER 169.5	Basketball	Points Over
+OVER 167.5	Basketball	Points Over
+HOME -4.5	Basketball	Spread - favourite
+HOME -1.5	Basketball	Spread - favourite
+HOME -2.5	Basketball	Spread - favourite
+HOME -4.0	Basketball	Spread - favourite
+HOME -4.5	Basketball	Spread - favourite
+HOME -3.0	Basketball	Spread - favourite
+HOME -2.5	Basketball	Spread - favourite
+HOME -3.5	Basketball	Spread - favourite
+ML HOME	Basketball	Moneyline
+HOME -2.0	Basketball	Spread - favourite
+HOME -2.5	Basketball	Spread - favourite
+HOME -3.0	Basketball	Spread - favourite
+AWAY -0.5	Football	Asian handicap - giving
+AWAY 0.0	Football	Draw no bet (0.0)
+AWAY 0.5	Football	Asian handicap - getting
+HOME -10.5	Basketball	Spread - favourite
+HOME -13.5	Basketball	Spread - favourite
+HOME -12.5	Basketball	Spread - favourite
+HOME -6.5	Basketball	Spread - favourite
+CARDS UNDER 4.5	Football	Cards Under
+OVER 173.5	Basketball	Points Over
+OVER 172.5	Basketball	Points Over
+OVER 174.0	Basketball	Points Over
+HOME -6.5	Basketball	Spread - favourite
+HOME -7.5	Basketball	Spread - favourite
+UNDER 2.75	Football	Goals Under
+OVER 2.5	Football	Goals Over
+AWAY -0.5	Football	Asian handicap - giving
+AWAY 0.0	Football	Draw no bet (0.0)
+OVER 174.5	Basketball	Points Over
+AWAY -0.25	Football	Asian handicap - giving
+HOME -1.25	Football	Asian handicap - giving
+OVER 3.5	Football	Goals Over
+OVER 3.25	Football	Goals Over
+HOME -0.5	Football	Asian handicap - giving
+HOME -7.5	Basketball	Spread - favourite
+OVER 2.5	Football	Goals Over
+HOME -0.5	Football	Asian handicap - giving
+OVER 1.5 FH	Football	1st-half Over
+OVER 2.25	Football	Goals Over
+HOME -0.5	Football	Asian handicap - giving
+HOME -13.5	Basketball	Spread - favourite
+HOME -11.5	Basketball	Spread - favourite
+AWAY 1.0	Football	Asian handicap - getting
+OVER 2.5	Football	Goals Over
+OVER 2.25	Football	Goals Over
+OVER 2.0	Football	Goals Over
+HOME -0.5	Football	Asian handicap - giving
+HOME -1.5	Basketball	Spread - favourite
+HOME -0.5	Football	Asian handicap - giving
+HOME 0.0	Football	Draw no bet (0.0)
+OVER 2.25	Football	Goals Over
+OVER 2.5	Football	Goals Over
+UNDER 2.5	Football	Goals Under
+UNDER 1.5	Football	Goals Under
+UNDER 2.0	Football	Goals Under
+UNDER 2.25	Football	Goals Under
+OVER 180.0	Basketball	Points Over
+OVER 180.5	Basketball	Points Over
+OVER 181.5	Basketball	Points Over
+HOME -0.5	Football	Asian handicap - giving
+HOME -0.25	Football	Asian handicap - giving
+HOME -8.5	Basketball	Spread - favourite
+UNDER 4.5	Football	Goals Under
+BTTS YES	Football	BTTS Yes
+OVER 2.5	Football	Goals Over
+BTTS YES	Football	BTTS Yes
+OVER 2.0	Football	Goals Over
+OVER 2.25	Football	Goals Over
+HOME 0.5	Football	Asian handicap - getting
+HOME 0.0	Football	Draw no bet (0.0)
+AWAY -0.5	Football	Asian handicap - giving
+AWAY 0.0	Football	Draw no bet (0.0)
+AWAY -0.5	Football	Asian handicap - giving
+HOME -5.5	Basketball	Spread - favourite
+HOME -7.5	Basketball	Spread - favourite
+AWAY -0.5	Football	Asian handicap - giving
+AWAY 0.0	Football	Draw no bet (0.0)
+AWAY -0.25	Football	Asian handicap - giving
+OVER 3.25	Football	Goals Over
+AWAY 0.0	Football	Draw no bet (0.0)
+AWAY -0.5	Football	Asian handicap - giving
+OVER 2.5	Football	Goals Over
+OVER 2.75	Football	Goals Over
+OVER 3.5	Football	Goals Over
+UNDER 2.5	Football	Goals Under
+UNDER 3.0	Football	Goals Under
+HOME -3.0	Basketball	Spread - favourite
+UNDER 2.25	Football	Goals Under
+HOME -0.5	Football	Asian handicap - giving
+HOME -0.5	Football	Asian handicap - giving
+UNDER 3.5	Football	Goals Under
+UNDER 2.5	Football	Goals Under
+AWAY -0.5	Football	Asian handicap - giving
+OVER 3.5	Football	Goals Over
+OVER 2.5	Football	Goals Over
+HOME -0.5	Football	Asian handicap - giving
+OVER 3.5	Football	Goals Over
+AWAY -0.5	Football	Asian handicap - giving
+UNDER 2.5	Football	Goals Under
+OVER 2.5	Football	Goals Over
+HOME -0.5	Football	Asian handicap - giving
+AWAY TEAM TO SCORE IN BOTH HALVES	Football	Score in both halves
+AWAY TEAM TO WIN EITHER HALF	Football	Win either half
+AWAY TEAM TO WIN BOTH HALVES	Football	Win both halves
+AWAY TEAM OVER 1.5	Football	Team goals Over
+AWAY TEAM OVER 0.5 FH	Football	Team goals Over (1st half)
+AWAY TEAM TO WIN EITHER HALF	Football	Win either half
+AWAY TEAM TO SCORE IN BOTH HALVES	Football	Score in both halves
+AWAY TEAM OVER 1.5	Football	Team goals Over
+BOTH HALVES OVER 1.5	Football	Both halves over
+AWAY TEAM TO WIN EITHER HALF	Football	Win either half
+AWAY TEAM TO SCORE IN BOTH HALVES	Football	Score in both halves
+AWAY TEAM OVER 1.5	Football	Team goals Over
+AWAY TEAM OVER 0.5 FH	Football	Team goals Over (1st half)
+HOME -0.5	Football	Asian handicap - giving
+HOME 1.5	Football	Asian handicap - getting
+BTTS YES	Football	BTTS Yes
+HOME -4.5	Basketball	Spread - favourite
+HOME -7.5	Basketball	Spread - favourite
+HOME -6.5	Basketball	Spread - favourite
+HOME -8.5	Basketball	Spread - favourite
+OVER 3.5	Football	Goals Over
+AWAY -0.5	Football	Asian handicap - giving
+AWAY 0.5	Football	Asian handicap - getting
+AWAY -0.5	Football	Asian handicap - giving
+OVER 3.5	Football	Goals Over
+AWAY -3.5	Basketball	Spread - favourite
+HOME -7.5	Basketball	Spread - favourite
+HOME -6.5	Basketball	Spread - favourite
+AWAY -4.5	Basketball	Spread - favourite
+AWAY 6.5	Basketball	Spread - underdog
+AWAY 5.5	Basketball	Spread - underdog
+HOME -9.5	Basketball	Spread - favourite
+HOME -8.5	Basketball	Spread - favourite
+HOME 0.0	Football	Draw no bet (0.0)
+HOME -0.5	Football	Asian handicap - giving
+UNDER 5.0	Football	Goals Under
+UNDER 4.75	Football	Goals Under
+UNDER 4.5	Football	Goals Under
+OVER 2.75	Football	Goals Over
+OVER 2.5	Football	Goals Over
+AWAY 15.5	Basketball	Spread - underdog
+OVER 168.5	Basketball	Points Over
+UNDER 2.75	Football	Goals Under
+OVER 170.5	Basketball	Points Over
+OVER 169.5	Basketball	Points Over
+UNDER 2.5	Football	Goals Under
+HOME -1.5	Football	Asian handicap - giving
+HOME TEAM TO SCORE IN BOTH HALVES	Football	Score in both halves
+HOME TEAM TO WIN BOTH HALVES	Football	Win both halves
+OVER 3.0	Football	Goals Over
+OVER 3.5	Football	Goals Over
+HOME TEAM OVER 1.5	Football	Team goals Over
+HOME TEAM TO SCORE IN BOTH HALVES	Football	Score in both halves
+HOME TEAM TO WIN BOTH HALVES	Football	Win both halves
+OVER 2.5	Football	Goals Over
+OVER 2.75	Football	Goals Over
+AWAY TEAM TO SCORE IN BOTH HALVES	Football	Score in both halves
+AWAY TEAM TO WIN EITHER HALF	Football	Win either half
+AWAY TEAM TO WIN BOTH HALVES	Football	Win both halves
+AWAY TEAM OVER 1.5	Football	Team goals Over
+AWAY -0.25	Football	Asian handicap - giving
+AWAY 0.0	Football	Draw no bet (0.0)
+OVER 2.25	Football	Goals Over
+OVER 2.5	Football	Goals Over
+HOME -0.5	Football	Asian handicap - giving
+OVER 1.5 FH	Football	1st-half Over
+OVER 2.75	Football	Goals Over
+HOME TEAM TO SCORE IN BOTH HALVES	Football	Score in both halves
+HOME TEAM OVER 1.5 FH	Football	Team goals Over (1st half)
+HOME TEAM TO WIN BOTH HALVES	Football	Win both halves
+HOME TEAM OVER 1.5	Football	Team goals Over
+OVER 2.5	Football	Goals Over
+OVER 2.5	Football	Goals Over
+AWAY TEAM TO WIN EITHER HALF	Football	Win either half
+AWAY TEAM TO SCORE IN BOTH HALVES	Football	Score in both halves
+AWAY TEAM OVER 1.5	Football	Team goals Over
+AWAY 0.0	Football	Draw no bet (0.0)
+BTTS NO	Football	BTTS No
+HOME 0.5	Football	Asian handicap - getting
+HOME -0.5	Football	Asian handicap - giving
+HOME 0.0	Football	Draw no bet (0.0)
+HOME -0.5	Football	Asian handicap - giving
+OVER 2.5	Football	Goals Over
+AWAY -0.5	Football	Asian handicap - giving
+UNDER 3.5	Football	Goals Under
+BTTS YES	Football	BTTS Yes
+OVER 2.5	Football	Goals Over
+BTTS YES	Football	BTTS Yes
+HOME -0.5	Football	Asian handicap - giving
+HOME -0.5	Football	Asian handicap - giving
+OVER 2.25	Football	Goals Over
+BTTS YES 2H	Football	BTTS 2nd half
+HOME TEAM OVER 1.5	Football	Team goals Over
+HOME TEAM TO WIN BOTH HALVES	Football	Win both halves
+BTTS YES	Football	BTTS Yes
+OVER 2.25	Football	Goals Over
+OVER 2.0	Football	Goals Over
+OVER 2.5	Football	Goals Over
+AWAY 0.25	Football	Asian handicap - getting
+HOME -11.5	Basketball	Spread - favourite
+HOME -10.5	Basketball	Spread - favourite
+HOME 3.25	Football	Asian handicap - getting
+HOME 3.0	Football	Asian handicap - getting
+AWAY -1.25	Football	Asian handicap - giving
+AWAY 16.5	Basketball	Spread - underdog
+AWAY 14.5	Basketball	Spread - underdog
+AWAY -2.5	Basketball	Spread - favourite
+AWAY -4.0	Basketball	Spread - favourite
+AWAY -4.5	Basketball	Spread - favourite
+AWAY -5.5	Basketball	Spread - favourite
+AWAY -5.0	Basketball	Spread - favourite
+AWAY -6.5	Basketball	Spread - favourite
+AWAY -2.5	Football	Asian handicap - giving
+AWAY -3.0	Football	Asian handicap - giving
+AWAY -4.5	Football	Asian handicap - giving
+UNDER 3.0	Football	Goals Under
+OVER 2.5	Football	Goals Over
+OVER 2.75	Football	Goals Over
+AWAY 1.25	Football	Asian handicap - getting
+HOME 1.75	Football	Asian handicap - getting
+OVER 3.25	Football	Goals Over
+OVER 3.0	Football	Goals Over
+OVER 3.5	Football	Goals Over
+CARDS UNDER 6.5	Football	Cards Under
+OVER 179.5	Basketball	Points Over
+OVER 180.5	Basketball	Points Over
+AWAY 1.5	Basketball	Spread - underdog
+AWAY 3.5	Basketball	Spread - underdog
+ML AWAY	Basketball	Moneyline
+AWAY 2.5	Basketball	Spread - underdog
+ML AWAY	Basketball	Moneyline
+AWAY -1.5	Basketball	Spread - favourite
+HOME -2.5	Basketball	Spread - favourite
+OVER 182.5	Basketball	Points Over
+OVER 186.5	Basketball	Points Over
+AWAY -0.5	Football	Asian handicap - giving
+CARDS UNDER 4.5	Football	Cards Under
+ML AWAY	Basketball	Moneyline
+ML HOME	Tennis	Moneyline
+AWAY -1.5	Basketball	Spread - favourite
+ML AWAY	Basketball	Moneyline
+AWAY -2.5	Basketball	Spread - favourite
+OVER 173.5	Basketball	Points Over
+OVER 172.5	Basketball	Points Over
+OVER 171.5	Basketball	Points Over
+ML HOME	Tennis	Moneyline
+AWAY 1.5	Basketball	Spread - underdog
+ML AWAY	Basketball	Moneyline
+AWAY -1.5	Basketball	Spread - favourite
+AWAY 2.5	Basketball	Spread - underdog
+OVER 168.5	Basketball	Points Over
+OVER 169.0	Basketball	Points Over
+HOME -3.5	Basketball	Spread - favourite
+HOME -2.5	Basketball	Spread - favourite
+HOME 2.5	Basketball	Spread - underdog
+ML HOME	Basketball	Moneyline
+ML AWAY	Tennis	Moneyline
+CARDS UNDER 5.5	Football	Cards Under
+AWAY -0.5	Football	Asian handicap - giving
+AWAY 0.0	Football	Draw no bet (0.0)
+HOME -0.5	Football	Asian handicap - giving
+OVER 3.0	Football	Goals Over
+OVER 3.5	Football	Goals Over
+BTTS YES	Football	BTTS Yes
+OVER 2.5	Football	Goals Over
+UNDER 3.0	Football	Goals Under
+BTTS NO	Football	BTTS No
+UNDER 2.5	Football	Goals Under
+OVER 3.25	Football	Goals Over
+OVER 3.5	Football	Goals Over
+OVER 3.0	Football	Goals Over
+OVER 2.5	Football	Goals Over
+OVER 2.5	Football	Goals Over
+OVER 2.75	Football	Goals Over
+HOME -0.25	Football	Asian handicap - giving
+OVER 2.5	Football	Goals Over
+UNDER 2.25	Football	Goals Under
+UNDER 2.0	Football	Goals Under
+OVER 2.25	Football	Goals Over
+AWAY 0.5	Football	Asian handicap - getting
+AWAY 0.25	Football	Asian handicap - getting
+HOME 0.75	Football	Asian handicap - getting
+OVER 2.5	Football	Goals Over
+OVER 3.5	Football	Goals Over
+BTTS NO	Football	BTTS No
+HOME 0.0	Football	Draw no bet (0.0)
+HOME -0.5	Football	Asian handicap - giving
+OVER 2.25	Football	Goals Over
+OVER 2.5	Football	Goals Over
+BTTS YES	Football	BTTS Yes
+OVER 1.5	Football	Goals Over
+UNDER 2.5	Football	Goals Under
+BTTS YES	Football	BTTS Yes
+OVER 2.5	Football	Goals Over
+OVER 2.25	Football	Goals Over
+OVER 2.0	Football	Goals Over
+UNDER 2.25	Football	Goals Under
+UNDER 2.5	Football	Goals Under
+AWAY -0.5	Football	Asian handicap - giving
+AWAY 0.0	Football	Draw no bet (0.0)
+OVER 2.5	Football	Goals Over
+OVER 2.0	Football	Goals Over
+OVER 2.5	Football	Goals Over
+AWAY -0.5	Football	Asian handicap - giving
+OVER 3.5	Football	Goals Over
+OVER 3.0	Football	Goals Over
+OVER 2.5	Football	Goals Over
+OVER 3.5	Football	Goals Over
+OVER 2.25	Football	Goals Over
+AWAY 0.0	Football	Draw no bet (0.0)
+AWAY -0.5	Football	Asian handicap - giving
+BTTS YES	Football	BTTS Yes
+HOME -0.25	Football	Asian handicap - giving
+AWAY TEAM TO WIN BOTH HALVES	Football	Win both halves
+AWAY TEAM TO SCORE IN BOTH HALVES	Football	Score in both halves
+HOME TEAM TO WIN EITHER HALF	Football	Win either half
+HOME TEAM TO WIN BOTH HALVES	Football	Win both halves
+HOME TEAM TO SCORE IN BOTH HALVES	Football	Score in both halves
+HOME TEAM UNDER 0.5	Football	Team goals Under
+BTTS NO	Football	BTTS No
+UNDER 2.5	Football	Goals Under
+AWAY TEAM TO WIN EITHER HALF	Football	Win either half
+AWAY -0.5	Football	Asian handicap - giving
+AWAY 0.5	Football	Asian handicap - getting
+AWAY 0.0	Football	Draw no bet (0.0)
+OVER 2.5	Football	Goals Over
+OVER 2.0	Football	Goals Over
+HOME TEAM OVER 1.5	Football	Team goals Over
+HOME TEAM TO SCORE IN BOTH HALVES	Football	Score in both halves
+HOME TEAM TO WIN BOTH HALVES	Football	Win both halves
+HOME TEAM OVER 1.5 FH	Football	Team goals Over (1st half)
+OVER 2.0	Football	Goals Over
+OVER 2.5	Football	Goals Over
+BTTS YES	Football	BTTS Yes
+HOME TEAM TO SCORE IN BOTH HALVES	Football	Score in both halves
+HOME -0.25	Football	Asian handicap - giving
+HOME 0.0	Football	Draw no bet (0.0)
+HOME TEAM OVER 0.5 FH	Football	Team goals Over (1st half)
+HOME TEAM OVER 1.5	Football	Team goals Over
+HOME TEAM TO WIN EITHER HALF	Football	Win either half
+HOME -0.5	Football	Asian handicap - giving
+OVER 3.5	Football	Goals Over
+OVER 3.0	Football	Goals Over
+OVER 2.5	Football	Goals Over
+OVER 3.0	Football	Goals Over
+OVER 2.5	Football	Goals Over
+OVER 2.75	Football	Goals Over
+OVER 1.5	Football	Goals Over
+OVER 2.0	Football	Goals Over
+OVER 2.5	Football	Goals Over
+OVER 3.5	Football	Goals Over
+OVER 3.25	Football	Goals Over
+UNDER 2.5	Football	Goals Under
+UNDER 3.0	Football	Goals Under
+OVER 2.5	Football	Goals Over
+OVER 3.5	Football	Goals Over
+OVER 3.0	Football	Goals Over
+UNDER 2.5	Football	Goals Under
+OVER 2.5	Football	Goals Over
+OVER 2.75	Football	Goals Over
+OVER 3.5	Football	Goals Over
+BTTS NO	Football	BTTS No
+UNDER 2.5	Football	Goals Under
+UNDER 3.0	Football	Goals Under
+UNDER 2.5	Football	Goals Under
+UNDER 3.25	Football	Goals Under
+OVER 2.5	Football	Goals Over
+UNDER 2.5	Football	Goals Under
+UNDER 2.5	Football	Goals Under
+UNDER 3.0	Football	Goals Under
+OVER 3.5	Football	Goals Over
+UNDER 3.0	Football	Goals Under
+UNDER 2.5	Football	Goals Under
+OVER 2.25	Football	Goals Over
+OVER 2.5	Football	Goals Over
+BTTS YES	Football	BTTS Yes
+CARDS UNDER 7.5	Football	Cards Under
+OVER 164.5	Basketball	Points Over
+OVER 165.5	Basketball	Points Over
+HOME -0.5	Football	Asian handicap - giving
+HOME -0.5	Football	Asian handicap - giving
+HOME -0.5	Football	Asian handicap - giving
+AWAY 7.5	Basketball	Spread - underdog
+UNDER 169.5	Basketball	Points Under
+UNDER 171.5	Basketball	Points Under
+UNDER 170.5	Basketball	Points Under
+UNDER 170.0	Basketball	Points Under
+HOME -0.5	Football	Asian handicap - giving
+UNDER 3.5	Football	Goals Under
+UNDER 3.0	Football	Goals Under
+OVER 2.5	Football	Goals Over
+OVER 3.25	Football	Goals Over
+OVER 3.5	Football	Goals Over
+OVER 3.5	Football	Goals Over
+AWAY -0.5	Football	Asian handicap - giving
+OVER 2.25	Football	Goals Over
+OVER 2.5	Football	Goals Over
+UNDER 2.5	Football	Goals Under
+UNDER 2.5	Football	Goals Under
+AWAY -0.5	Football	Asian handicap - giving
+AWAY 0.5	Football	Asian handicap - getting
+OVER 3.5	Football	Goals Over
+OVER 3.25	Football	Goals Over
+AWAY -0.5	Football	Asian handicap - giving
+AWAY 0.5	Football	Asian handicap - getting
+HOME -0.5	Football	Asian handicap - giving
+OVER 2.5	Football	Goals Over
+AWAY -0.5	Football	Asian handicap - giving
+OVER 2.5	Football	Goals Over
+OVER 3.0	Football	Goals Over
+HOME -0.5	Football	Asian handicap - giving
+OVER 2.5	Football	Goals Over
+OVER 2.5	Football	Goals Over
+AWAY -0.5	Football	Asian handicap - giving
+AWAY -0.5	Football	Asian handicap - giving
+AWAY -0.5	Football	Asian handicap - giving
+OVER 3.0	Football	Goals Over
+OVER 3.5	Football	Goals Over
+OVER 3.25	Football	Goals Over
+OVER 3.5	Football	Goals Over
+OVER 3.5	Football	Goals Over
+OVER 3.75	Football	Goals Over
+OVER 2.75	Football	Goals Over
+OVER 2.5	Football	Goals Over
+OVER 3.5	Football	Goals Over
+OVER 3.5	Football	Goals Over
+OVER 3.0	Football	Goals Over
+OVER 2.75	Football	Goals Over
+OVER 2.75	Football	Goals Over
+OVER 2.5	Football	Goals Over
+OVER 2.5	Football	Goals Over
+OVER 3.0	Football	Goals Over
+OVER 3.5	Football	Goals Over
+ML AWAY	Tennis	Moneyline
+AWAY 6.5	Basketball	Spread - underdog
+AWAY 5.5	Basketball	Spread - underdog
+AWAY 5.0	Basketball	Spread - underdog
+AWAY 4.5	Basketball	Spread - underdog
+AWAY 6.0	Basketball	Spread - underdog
+ML HOME	Tennis	Moneyline
+ML AWAY	Tennis	Moneyline
+ML HOME	Tennis	Moneyline
+ML AWAY	Tennis	Moneyline
+AWAY -0.5	Football	Asian handicap - giving
+HOME -0.5	Football	Asian handicap - giving
+OVER 2.5	Football	Goals Over
+OVER 2.5	Football	Goals Over
+AWAY -0.75	Football	Asian handicap - giving
+AWAY -0.5	Football	Asian handicap - giving
+BTTS NO	Football	BTTS No
+AWAY 1.5	Football	Asian handicap - getting
+OVER 3.25	Football	Goals Over
+OVER 3.5	Football	Goals Over
+OVER 2.5	Football	Goals Over
+OVER 2.75	Football	Goals Over
+AWAY 1.5	Football	Asian handicap - getting
+AWAY 2.0	Football	Asian handicap - getting
+UNDER 3.5	Football	Goals Under
+HOME -0.5	Football	Asian handicap - giving
+BTTS NO	Football	BTTS No
+OVER 3.5	Football	Goals Over
+UNDER 2.5	Football	Goals Under
+UNDER 2.25	Football	Goals Under
+AWAY -0.5	Football	Asian handicap - giving
+OVER 2.75	Football	Goals Over
+BTTS YES	Football	BTTS Yes
+BTTS NO	Football	BTTS No
+BTTS YES	Football	BTTS Yes
+HOME -0.5	Football	Asian handicap - giving
+UNDER 2.5	Football	Goals Under
+UNDER 3.5	Football	Goals Under
+UNDER 2.5	Football	Goals Under
+UNDER 3.0	Football	Goals Under
+OVER 2.5	Football	Goals Over
+AWAY -0.25	Football	Asian handicap - giving
+AWAY -0.5	Football	Asian handicap - giving
+OVER 168.5	Basketball	Points Over
+OVER 167.5	Basketball	Points Over
+OVER 169.5	Basketball	Points Over
+UNDER 170.5	Basketball	Points Under
+UNDER 171.5	Basketball	Points Under
+ML HOME	Tennis	Moneyline
+ML AWAY	Tennis	Moneyline
+ML AWAY	Tennis	Moneyline
+ML HOME	Tennis	Moneyline
+OVER 172.5	Basketball	Points Over
+OVER 171.5	Basketball	Points Over
+AWAY 4.5	Basketball	Spread - underdog
+OVER 168.5	Basketball	Points Over
+AWAY -14.5	Basketball	Spread - favourite
+AWAY -16.5	Basketball	Spread - favourite
+AWAY -15.5	Basketball	Spread - favourite
+HOME -9.0	Basketball	Spread - favourite
+HOME -8.5	Basketball	Spread - favourite
+HT HOME -4.5	Basketball	Other
+HOME -10.5	Basketball	Spread - favourite
+HOME -3.5	Basketball	Spread - favourite
+UNDER 2.5	Football	Goals Under
+OVER 2.5	Football	Goals Over
+OVER 2.25	Football	Goals Over
+OVER 2.5	Football	Goals Over
+UNDER 2.5	Football	Goals Under
+UNDER 2.5	Football	Goals Under
+UNDER 3.25	Football	Goals Under
+UNDER 3.5	Football	Goals Under
+AWAY -0.5	Football	Asian handicap - giving
+AWAY -0.75	Football	Asian handicap - giving
+AWAY -0.5	Football	Asian handicap - giving
+UNDER 2.5	Football	Goals Under
+UNDER 3.5	Football	Goals Under
+OVER 2.5	Football	Goals Over
+AWAY -0.5	Football	Asian handicap - giving
+AWAY -0.25	Football	Asian handicap - giving
+OVER 2.5	Football	Goals Over
+OVER 2.5	Football	Goals Over
+OVER 2.75	Football	Goals Over
+OVER 2.5	Football	Goals Over
+HOME -0.25	Football	Asian handicap - giving
+OVER 3.0	Football	Goals Over
+HT OVER 1.0	Football	1st-half Over
+UNDER 2.75	Football	Goals Under
+AWAY 0.25	Football	Asian handicap - getting
+OVER 2.5	Football	Goals Over
+OVER 3.0	Football	Goals Over
+AWAY 0.0	Football	Draw no bet (0.0)
+AWAY 0.0	Football	Draw no bet (0.0)
+BTTS NO	Football	BTTS No
+UNDER 2.75	Football	Goals Under
+UNDER 2.5	Football	Goals Under
+OVER 2.5	Football	Goals Over
+OVER 3.25	Football	Goals Over
+OVER 3.5	Football	Goals Over
+AWAY -0.5	Football	Asian handicap - giving
+AWAY -0.25	Football	Asian handicap - giving
+HOME -0.5	Football	Asian handicap - giving
+HOME -0.25	Football	Asian handicap - giving
+AWAY -0.5	Football	Asian handicap - giving
+UNDER 2.5	Football	Goals Under
+AWAY -0.5	Football	Asian handicap - giving
+AWAY -0.5	Football	Asian handicap - giving
+OVER 2.5	Football	Goals Over
+BTTS YES	Football	BTTS Yes
+BTTS YES	Football	BTTS Yes
+OVER 2.75	Football	Goals Over
+OVER 2.5	Football	Goals Over
+AWAY 0.0	Football	Draw no bet (0.0)
+AWAY -0.5	Football	Asian handicap - giving
+OVER 3.25	Football	Goals Over
+OVER 3.5	Football	Goals Over
+OVER 3.0	Football	Goals Over
+OVER 3.25	Football	Goals Over
+OVER 3.5	Football	Goals Over
+UNDER 3.0	Football	Goals Under
+UNDER 2.5	Football	Goals Under
+UNDER 2.75	Football	Goals Under
+UNDER 2.5	Football	Goals Under
+AWAY 0.0	Football	Draw no bet (0.0)
+OVER 3.5	Football	Goals Over
+OVER 3.0	Football	Goals Over
+OVER 2.75	Football	Goals Over
+OVER 2.5	Football	Goals Over
+UNDER 2.0	Football	Goals Under
+UNDER 1.5	Football	Goals Under
+OVER 2.75	Football	Goals Over
+OVER 2.5	Football	Goals Over
+BTTS YES	Football	BTTS Yes
+OVER 2.5	Football	Goals Over
+OVER 2.75	Football	Goals Over
+BTTS YES	Football	BTTS Yes
+OVER 2.5	Football	Goals Over
+HOME -0.25	Football	Asian handicap - giving
+HOME -0.5	Football	Asian handicap - giving
+BTTS YES	Football	BTTS Yes
+AWAY 0.5	Football	Asian handicap - getting
+ML AWAY	Tennis	Moneyline
+AWAY -0.5	Football	Asian handicap - giving
+OVER 167.5	Basketball	Points Over
+OVER 163.5	Basketball	Points Over
+ML HOME	Tennis	Moneyline
+ML AWAY	Tennis	Moneyline
+ML HOME	Tennis	Moneyline
+ML HOME	Tennis	Moneyline
+ML AWAY	Tennis	Moneyline
+UNDER 3.5	Football	Goals Under
+UNDER 4.0	Football	Goals Under
+OVER 3.5	Football	Goals Over
+AWAY 0.0	Football	Draw no bet (0.0)
+AWAY -0.5	Football	Asian handicap - giving
+UNDER 2.5	Football	Goals Under
+UNDER 3.0	Football	Goals Under
+UNDER 2.5	Football	Goals Under
+OVER 2.5	Football	Goals Over
+UNDER 2.5	Football	Goals Under
+UNDER 2.75	Football	Goals Under
+UNDER 2.5	Football	Goals Under
+UNDER 2.5	Football	Goals Under
+AWAY 0.0	Football	Draw no bet (0.0)
+AWAY -0.5	Football	Asian handicap - giving
+UNDER 2.5	Football	Goals Under
+UNDER 2.25	Football	Goals Under
+UNDER 2.0	Football	Goals Under
+AWAY 0.0	Football	Draw no bet (0.0)
+AWAY -1.0	Football	Asian handicap - giving
+OVER 3.5	Football	Goals Over
+OVER 2.5	Football	Goals Over
+AWAY -0.5	Football	Asian handicap - giving
+OVER 3.5	Football	Goals Over
+OVER 3.0	Football	Goals Over
+OVER 1.75	Football	Goals Over
+OVER 2.0	Football	Goals Over
+OVER 1.5	Football	Goals Over
+CORNERS UNDER 10.5	Football	Other
+CORNERS UNDER 9.5	Football	Other
+OVER 2.5	Football	Goals Over
+OVER 2.75	Football	Goals Over
+OVER 3.0	Football	Goals Over
+OVER 3.5	Football	Goals Over
+OVER 3.25	Football	Goals Over
+OVER 3.0	Football	Goals Over
+OVER 2.5	Football	Goals Over
+OVER 2.75	Football	Goals Over
+CORNERS UNDER 12.0	Football	Other
+CORNERS UNDER 10.5	Football	Other
+CORNERS UNDER 12.5	Football	Other
+CORNERS UNDER 11.5	Football	Other
+CORNERS UNDER 10.5	Football	Other
+CORNERS UNDER 11.0	Football	Other
+CORNERS UNDER 11.5	Football	Other
+CORNERS UNDER 9.5	Football	Other
+CORNERS UNDER 8.5	Football	Other
+CORNERS UNDER 7.5	Football	Other
+CORNERS UNDER 9.5	Football	Other
+CORNERS UNDER 9.5	Football	Other
+CORNERS UNDER 8.5	Football	Other
+CORNERS UNDER 10.5	Football	Other
+CORNERS UNDER 11.5	Football	Other
+CORNERS UNDER 9.5	Football	Other
+CORNERS UNDER 10.5	Football	Other
+UNDER 2.5	Football	Goals Under
+UNDER 2.75	Football	Goals Under
+UNDER 3.0	Football	Goals Under
