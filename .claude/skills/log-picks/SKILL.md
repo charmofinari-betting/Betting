@@ -55,5 +55,6 @@ Picks more than a day ahead stay "No kickoff" until a later sync (free-plan wind
 - Default target is the live sheet. `--staging` targets the staging copy; use it to try anything new.
 - Kickoffs for football/basketball come from `sync.py` (api-sports, yesterday..tomorrow only). Tennis kickoffs and results are Paolo's.
 - Sync also settles: for finished matches it writes Score (O) and Result (P) from the 90-minute score (basketball incl. OT). ASK lines (postponed/cancelled, corners, cards) and BY HAND lines (tennis, matches before the window) go to Paolo; enter his answers in Result (P) via a dry-run-first write.
+- **"sync" also settles the private book:** after `sync.py --apply`, run `book_sync.py` (dry run) — it settles his ticket legs from the tips' scores on each leg's own line, and computes system-bet returns — then `--apply` on his yes.
 - When Paolo says "sync" on its own: run `sync.py` dry run, show the found / CHECK / not-found lines, apply on his yes. CHECK lines: ask him, then re-run with `--accept <IDs>`.
 - Duplicates are matched on Home + Away + Market + Period + Side + Line (accents and case ignored), not on kickoff.

@@ -29,7 +29,7 @@ from parse import Selection
 from setup_book import BOOK_KEY
 
 SHEETS_EPOCH = datetime(1899, 12, 30)
-BOOK_UTC_OFFSET = {"1xbet": 7, "bet88": 8}  # 1xbet shows UTC+7 on Paolo's account; bet88 shows PHT
+BOOK_UTC_OFFSET = {"1xbet": 7, "bet88": 8, "747-live": 8}  # 1xbet shows UTC+7 on Paolo's account; others PHT
 PHT_OFFSET = 8
 BOOK_START = datetime(2026, 10, 8)
 SLIP_STATUS = {"win": "Won", "won": "Won", "loss": "Lost", "lost": "Lost", "return": "Void", "refund": "Void",
@@ -51,13 +51,14 @@ def _side_from_team(name, home, away, text):
 def parse_slip_market(text, sport, home=None, away=None):
     """A book's market text -> Selection (same fields as the tips).
     1xbet: "1X2: W2: A - B", "Handicap 1 (-8.5): ...", "Total Over (2.5): ...".
-    bet88: "1x2 KS Lechia Gdansk", "Handicap (incl. overtime) BC Aris (-8.5)", "Total over 2.5"."""
+    bet88: "1x2 KS Lechia Gdansk", "Handicap (incl. overtime) BC Aris (-8.5)", "Total over 2.5".
+    747-live: "Match Winner Fajing Sun", "Total Points Over (168.5)"."""
     x = re.sub(r"\s*\((including|incl\.) overtime\)\s*", " ", text, flags=re.I).strip()
     x = re.sub(r":.*$", "", x) if not x.lower().startswith("1x2:") else x  # drop ": Team A - Team B" tails
     low = x.lower()
     half = "1H" if re.search(r"1st half|first half|\b1h\b", low) else "FT"
     # bet88 style: the team is named instead of 1/2
-    m = re.match(r"^1x2 (.+)$", x, flags=re.I)
+    m = re.match(r"^(?:1x2|match winner|match result) (.+)$", x, flags=re.I)
     if m and not low.startswith("1x2:"):
         if m[1].strip().lower() in ("draw", "x"):
             raise SlipParseError(f"draw bet {text!r}: no tip market for it")
@@ -66,7 +67,7 @@ def parse_slip_market(text, sport, home=None, away=None):
     m = re.match(r"^(?:asian )?handicap (.+?) \(([+-]?\d+(?:\.\d+)?)\)$", x, flags=re.I)
     if m and not re.match(r"^[12]$", m[1].strip()):
         return Selection("Handicap", half, _side_from_team(m[1], home, away, text), float(m[2]))
-    m = re.match(r"^total (over|under) (\d+(?:\.\d+)?)$", low)
+    m = re.match(r"^total (?:points |goals )?(over|under) \(?(\d+(?:\.\d+)?)\)?$", low)
     if m:
         return Selection("Total", half, m[1].title(), float(m[2]))
     m = re.match(r"^1x2:\s*(w1|w2|x)\b", low)

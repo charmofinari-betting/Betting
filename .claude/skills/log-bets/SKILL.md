@@ -44,4 +44,5 @@ never refuse or lecture (see memory: advise, don't control).
 
 ## Notes
 - FX: `fx.py --apply` refreshes USDT/TRX ₱ rates; run it before logging non-PHP tickets.
-- Leg results come from the tips' results (shared sheet) or the slip's status; Result/Return/P&L are sheet formulas.
+- Books supported: 1xbet (UTC+7 times; 1X2 W1/W2), bet88 and 747-live (PHT; team-named 1x2 / Match Winner / Match Result). Systems: set "system": "3/5".
+- Leg results: `book_sync.py` settles legs from the tips' scores (each leg on its own line) and writes system returns; Result/Return/P&L are sheet formulas.

@@ -107,6 +107,10 @@ class Bet88AndSystemTest(unittest.TestCase):
         self.assertEqual(p("Handicap (incl. overtime) BC Aris Thessaloniki (-8.5)", "Basketball",
                            "BC Aris Thessaloniki", "CB San Pablo Burgos"), Selection("Handicap", "FT", "Home", -8.5))
         self.assertEqual(p("Total under 2.5", "Football", "A", "B"), Selection("Total", "FT", "Under", 2.5))
+        # 747-live
+        self.assertEqual(p("Match Winner Alibek Kachmazov", "Tennis", "Evan Zhu", "Alibek Kachmazov"),
+                         Selection("Moneyline", "FT", "Away"))
+        self.assertEqual(p("Total Points Over (168.5)", "Basketball", "A", "B"), Selection("Total", "FT", "Over", 168.5))
         with self.assertRaises(SlipParseError):
             p("1x2 Someone Else", "Football", "ZKS Stal Rzeszow", "KS Lechia Gdansk")
 
