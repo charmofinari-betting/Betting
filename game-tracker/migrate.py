@@ -1,8 +1,11 @@
 """Migrate the old Sheet1 (free-text selection) to the new structured layout.
 
-Usage: python migrate.py <sheet_key>
-Dry run only for now: reads the sheet, writes the proposed new table and a report
-to game-tracker/out/, and changes nothing in the sheet.
+Usage: python migrate.py <sheet_key> [--apply]
+Dry run (default): reads the sheet, writes the proposed new table and a report to
+game-tracker/out/, and changes nothing in the sheet.
+--apply: copies Sheet1 to an "Archive" tab, rewrites Sheet1 in the new layout, puts in
+the new Status / Calc / Dashboard formulas (formulas.py), then diffs the Dashboard
+before vs after.
 """
 import csv
 import sys
@@ -10,7 +13,8 @@ from collections import defaultdict
 from datetime import datetime, timedelta
 from pathlib import Path
 
-from inspect_sheet import client
+import formulas
+from inspect_sheet import READWRITE, client
 from parse import ParseError, market_detail, parse_selection
 
 OUT = Path(__file__).resolve().parent / "out"
@@ -32,7 +36,9 @@ def kickoff_text(serial):
 
 def load(key):
     sh = client().open_by_key(key)
-    s1 = sh.worksheet("Sheet1")
+    # After a first apply the original rows live in Archive; reading from there makes re-runs safe.
+    tabs = [w.title for w in sh.worksheets()]
+    s1 = sh.worksheet("Archive" if "Archive" in tabs else "Sheet1")
     values = s1.get_all_values()
     raw = s1.get_all_values(value_render_option="UNFORMATTED_VALUE")
     leagues = {r[0].strip(): r[1].strip() for r in sh.worksheet("Leagues").get_all_values()[1:] if r and r[0].strip()}
@@ -74,7 +80,7 @@ def migrate(values, raw, leagues):
             "Side": sel.side if sel else "", "Line": "" if not sel or sel.line is None else f"{sel.line:g}",
             "Selection (as sent)": text, "Tip odds": odds_s, "Score": "", "Result": result,
             "Status": "", "Closing odds": "", "Notes": "",
-            "_sheet_row": i + 1, "_odds": odds, "_detail": market_detail(sel, sport) if sel else "",
+            "_sheet_row": i + 1, "_odds": odds, "_ko": ko, "_line": sel.line if sel else None, "_detail": market_detail(sel, sport) if sel else "",
         })
     return rows, problems
 
@@ -89,6 +95,58 @@ def totals(rows, label_of):
                 t[k][1] += 1
                 t[k][2] += u
     return t
+
+
+def cell_value(r, h):
+    """Kickoff as a date serial, line and odds as numbers, everything else as text."""
+    if h == "Kickoff (PHT)":
+        return "" if r["_ko"] is None else r["_ko"]
+    if h == "Line":
+        return "" if r["_line"] is None else r["_line"]
+    if h == "Tip odds":
+        return r["_odds"] if r["_odds"] is not None else r[h]
+    return r[h]
+
+
+def apply(key, rows):
+    sh = client(READWRITE).open_by_key(key)
+    tabs = [w.title for w in sh.worksheets()]
+    dash = sh.worksheet("Dashboard")
+    before = dash.get_all_values()
+    s1 = sh.worksheet("Sheet1")
+    if "Archive" in tabs:
+        print(f"[{sh.title}] Archive already exists: rebuilding Sheet1 from it")
+    else:
+        s1.duplicate(new_sheet_name="Archive", insert_sheet_index=len(tabs))
+        print(f"[{sh.title}] Sheet1 copied to Archive")
+
+    s1.batch_clear(["A1:Z"])
+    # None, not "": an empty-string cell counts as data and blocks the Status formula's spill.
+    body = [[None if v == "" else v for v in (cell_value(r, h) for h in HEADER)] for r in rows]
+    s1.update(range_name="A2", values=[HEADER], value_input_option="RAW")
+    s1.update(range_name="A3", values=body, value_input_option="RAW")
+    s1.format("B3:B", {"numberFormat": {"type": "DATE_TIME", "pattern": "d mmmm yyyy h:mm"}})
+    s1.format("A2:R2", {"textFormat": {"bold": True}})
+    s1.freeze(rows=2)
+    for cell, f in formulas.SHEET1_STATUS.items():
+        s1.update(range_name=cell, values=[[f]], value_input_option="USER_ENTERED")
+    print(f"[{sh.title}] Sheet1 rewritten: {len(body)} rows + Status formula")
+
+    calc = sh.worksheet("Calc")
+    row2 = [formulas.CALC.get(f"{chr(65 + j)}2", "") for j in range(16)]
+    calc.update(range_name="A2:P2", values=[row2], value_input_option="USER_ENTERED")
+    for cell, f in formulas.DASHBOARD.items():
+        dash.update(range_name=cell, values=[[f]], value_input_option="USER_ENTERED")
+    print(f"[{sh.title}] Calc + Dashboard formulas replaced")
+
+    after = dash.get_all_values()
+    changed = [(i, j, b, a) for i in range(max(len(before), len(after)))
+               for j in range(max(len(before[i]) if i < len(before) else 0, len(after[i]) if i < len(after) else 0))
+               for b, a in [((before[i][j] if i < len(before) and j < len(before[i]) else ""),
+                             (after[i][j] if i < len(after) and j < len(after[i]) else ""))] if b != a]
+    print(f"\nDashboard cells changed: {len(changed)}")
+    for i, j, b, a in changed:
+        print(f"  {chr(65 + j)}{i + 1}: {b!r} -> {a!r}")
 
 
 def main():
@@ -122,6 +180,10 @@ def main():
     lines += ["", "Rows with no kickoff:"] + [f"  {r['ID']} (sheet row {r['_sheet_row']}): {r['Home']} vs {r['Away']} {r['Selection (as sent)']}" for r in rows if not r["Kickoff (PHT)"]]
     (OUT / "migration_report.txt").write_text("\n".join(lines) + "\n", encoding="utf-8")
     print("\n".join(lines))
+    if "--apply" in sys.argv:
+        if problems:
+            sys.exit("problems found, not applying")
+        apply(sys.argv[1], rows)
 
 
 if __name__ == "__main__":
