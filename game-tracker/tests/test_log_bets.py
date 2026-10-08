@@ -17,6 +17,8 @@ class SlipMarketTest(unittest.TestCase):
             ("Total Under (2.75): A - B", "Football", Selection("Total", "FT", "Under", 2.75)),
             ("1st Half Total Over (1.5): A - B", "Football", Selection("Total", "1H", "Over", 1.5)),
             ("Individual Total 1 Over (1.5): A - B", "Football", Selection("Home team total", "FT", "Over", 1.5)),
+            ("Total: Over 2.5", "Football", Selection("Total", "FT", "Over", 2.5)),
+            ("Total: Under 2.5", "Football", Selection("Total", "FT", "Under", 2.5)),
             ("Both Teams To Score - Yes: A - B", "Football", Selection("BTTS", "FT", "Yes")),
         ]
         for text, sport, want in cases:

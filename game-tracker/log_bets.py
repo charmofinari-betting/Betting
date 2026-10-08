@@ -54,6 +54,7 @@ def parse_slip_market(text, sport, home=None, away=None):
     bet88: "1x2 KS Lechia Gdansk", "Handicap (incl. overtime) BC Aris (-8.5)", "Total over 2.5".
     747-live: "Match Winner Fajing Sun", "Total Points Over (168.5)"."""
     x = re.sub(r"\s*\((including|incl\.) overtime\)\s*", " ", text, flags=re.I).strip()
+    x = re.sub(r"^total:\s*", "total ", x, flags=re.I)  # 1xbet variant "Total: Over 2.5"
     x = re.sub(r":.*$", "", x) if not x.lower().startswith("1x2:") else x  # drop ": Team A - Team B" tails
     low = x.lower()
     half = "1H" if re.search(r"1st half|first half|\b1h\b", low) else "FT"
