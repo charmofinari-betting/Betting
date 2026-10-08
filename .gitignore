@@ -3,3 +3,4 @@ secrets/
 .env
 __pycache__/
 .venv/
+game-tracker/out/
