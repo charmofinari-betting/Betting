@@ -83,6 +83,7 @@ Treble, ₱1,500, odds 7.021: T-0436 Novorizontino W2 (tip AWAY -0.5) 2.40 → 1
 
 ## 8. Assumptions — correct me
 - Only Paolo sees this sheet.
-- All stakes in PHP; any non-PHP account converts at the time of deposit (noted in Ledger).
+- **Multi-currency (changed 2026-10-08):** 1xbet has PHP, USDT and TRX accounts. Amounts stay in each account's currency; the FX tab holds ₱ per unit; each ticket stores the FX of the day it was placed (its ₱ P&L is fixed then); balances in ₱ use the current FX. Coin price moves are not betting P&L.
+- Tickets placed before 8 Oct and still open: the book's cash balance already excludes their stake, so log-bets adds an "Opening balance" ledger line equal to that stake (note: open ticket before start). Balances then add up.
 - A ticket's stake leaves the balance when placed; the return arrives when the last leg settles.
 - Cash-outs: recorded as a ticket result "Cashed out" with the amount, when they happen.
