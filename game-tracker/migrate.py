@@ -18,7 +18,7 @@ from inspect_sheet import READWRITE, client
 from parse import ParseError, market_detail, parse_selection
 
 OUT = Path(__file__).resolve().parent / "out"
-HEADER = ["ID", "Kickoff (PHT)", "Sport", "Country", "League", "Home", "Away", "Market",
+HEADER = ["ID", "Kickoff (PHT)", "Sport", "Country", "League", "Match", "Home", "Away", "Market",
           "Period", "Side", "Line", "Selection (as sent)", "Tip odds", "Score", "Result",
           "Status", "Closing odds", "Notes"]
 SHEETS_EPOCH = datetime(1899, 12, 30)
@@ -75,7 +75,8 @@ def migrate(values, raw, leagues):
             odds = None
         rows.append({
             "ID": f"T-{n:04d}", "Kickoff (PHT)": kickoff_text(ko) if ko is not None else "",
-            "Sport": sport, "Country": country, "League": league, "Home": home.strip(), "Away": away.strip(),
+            "Sport": sport, "Country": country, "League": league, "Match": match,
+            "Home": home.strip(), "Away": away.strip(),
             "Market": sel.market if sel else "", "Period": sel.period if sel else "",
             "Side": sel.side if sel else "", "Line": "" if not sel or sel.line is None else f"{sel.line:g}",
             "Selection (as sent)": text, "Tip odds": odds_s, "Score": "", "Result": result,
@@ -126,18 +127,38 @@ def apply(key, rows):
     s1.update(range_name="A2", values=[HEADER], value_input_option="RAW")
     s1.update(range_name="A3", values=body, value_input_option="RAW")
     s1.format("B3:B", {"numberFormat": {"type": "DATE_TIME", "pattern": "d mmmm yyyy h:mm"}})
-    s1.format("A2:R2", {"textFormat": {"bold": True}})
+    s1.format("A2:S2", {"textFormat": {"bold": True}})
     s1.freeze(rows=2)
     for cell, f in formulas.SHEET1_STATUS.items():
         s1.update(range_name=cell, values=[[f]], value_input_option="USER_ENTERED")
-    print(f"[{sh.title}] Sheet1 rewritten: {len(body)} rows + Status formula")
+    meta = sh.fetch_sheet_metadata(params={"fields": "sheets(properties(sheetId,title),conditionalFormats)"})
+    old_rules = next(len(x.get("conditionalFormats", [])) for x in meta["sheets"] if x["properties"]["title"] == "Sheet1")
+    sh.batch_update({"requests": formulas.format_requests(s1.id, old_rules)})
+    print(f"[{sh.title}] Sheet1 rewritten: {len(body)} rows + Status formula; "
+          f"{old_rules} old colour rules and old dropdowns replaced")
 
     calc = sh.worksheet("Calc")
-    row2 = [formulas.CALC.get(f"{chr(65 + j)}2", "") for j in range(16)]
+    # Clear first: a None cell in an update means "leave as is", so stale formulas would
+    # stay in the spill cells and block the new formulas from expanding.
+    calc.batch_clear(["A2:P2"])
+    row2 = [formulas.CALC.get(f"{chr(65 + j)}2") for j in range(16)]
     calc.update(range_name="A2:P2", values=[row2], value_input_option="USER_ENTERED")
     for cell, f in formulas.DASHBOARD.items():
         dash.update(range_name=cell, values=[[f]], value_input_option="USER_ENTERED")
     print(f"[{sh.title}] Calc + Dashboard formulas replaced")
+
+    if formulas.OPEN_PICKS_TAB in tabs:
+        op = sh.worksheet(formulas.OPEN_PICKS_TAB)
+        op.batch_clear(["A1:Z"])
+    else:
+        op = sh.add_worksheet(formulas.OPEN_PICKS_TAB, rows=1000, cols=len(formulas.OPEN_PICKS_HEADER), index=1)
+    op.update(range_name="A1", values=[formulas.OPEN_PICKS_HEADER], value_input_option="RAW")
+    for cell, f in formulas.OPEN_PICKS.items():
+        op.update(range_name=cell, values=[[f]], value_input_option="USER_ENTERED")
+    op.format("A1:H1", {"textFormat": {"bold": True}})
+    op.format("A2:A", {"numberFormat": {"type": "DATE_TIME", "pattern": "ddd d mmm h:mm"}})
+    op.freeze(rows=1)
+    print(f"[{sh.title}] '{formulas.OPEN_PICKS_TAB}' tab set up")
 
     after = dash.get_all_values()
     changed = [(i, j, b, a) for i in range(max(len(before), len(after)))

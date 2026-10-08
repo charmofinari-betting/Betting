@@ -95,3 +95,10 @@ Three parts:
 2. Migration dry run → Paolo review → apply.
 3. log-picks skill + script → test on the sample screenshots.
 4. Next phase: api-sports coverage pilot, then settlement.
+
+## 11. Changes after staging review (2026-10-08)
+- **Match column added** (F, "Home vs Away") so a fixture is easy to find; Home/Away stay as G/H for matching. All later columns shift by one: Market I, Period J, Side K, Line L, Selection M, Tip odds N, Score O, Result P, Status Q, Closing odds R, Notes S.
+- Team totals are stored as Market "Home team total" / "Away team total" with Side Over/Under (instead of Side "Home Over").
+- **Formatting rebuilt** on the new columns: Status colours (No kickoff grey, In play amber, Needs result red) on Q; dropdowns on Market, Period, Side, Result. The old Settlement dropdown and the colour rules on the old positions are removed.
+- **New "Open picks" tab:** every pick whose match isn't finished (Upcoming / In play / No kickoff), soonest kickoff first, same-match picks together. Updates itself.
+- Corners get their own Side/Position ("Corners"), like Cards.
