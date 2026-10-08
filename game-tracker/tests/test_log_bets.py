@@ -97,3 +97,27 @@ class PlanTest(unittest.TestCase):
 
 if __name__ == "__main__":
     unittest.main()
+
+
+class Bet88AndSystemTest(unittest.TestCase):
+    def test_bet88_markets(self):
+        from log_bets import parse_slip_market as p
+        self.assertEqual(p("1x2 KS Lechia Gdansk", "Football", "ZKS Stal Rzeszow", "KS Lechia Gdansk"),
+                         Selection("Handicap", "FT", "Away", -0.5))
+        self.assertEqual(p("Handicap (incl. overtime) BC Aris Thessaloniki (-8.5)", "Basketball",
+                           "BC Aris Thessaloniki", "CB San Pablo Burgos"), Selection("Handicap", "FT", "Home", -8.5))
+        self.assertEqual(p("Total under 2.5", "Football", "A", "B"), Selection("Total", "FT", "Under", 2.5))
+        with self.assertRaises(SlipParseError):
+            p("1x2 Someone Else", "Football", "ZKS Stal Rzeszow", "KS Lechia Gdansk")
+
+    def test_system_return_matches_bet88_potential(self):
+        from log_bets import system_return
+        # bet88 slip 2719626337345221478: system 3/5, ₱4,000, potential win ₱30,060.33
+        self.assertAlmostEqual(system_return([1.87, 1.87, 2.10, 1.90, 2.06], 3, 4000), 30060.33, delta=0.05)
+
+    def test_system_return_with_lost_void_and_half(self):
+        from log_bets import system_return
+        # 2/3 system, 300 stake (100 per double): legs won 2.0, lost, void
+        self.assertEqual(system_return([2.0, 0, 1], 2, 300), 200.0)
+        # half won leg factor (odds+1)/2
+        self.assertEqual(system_return([2.0, 1.5, 1], 2, 300), 100 * (2.0 * 1.5 + 2.0 + 1.5))

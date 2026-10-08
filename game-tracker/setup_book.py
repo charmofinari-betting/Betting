@@ -14,7 +14,9 @@ import time
 BOOK_KEY = "1zfPQqyLsFtFoDkluO4R7was3wyh5au6jV1Eyayykxdg"
 LEG_RESULTS = ("Won", "Lost", "Half Won", "Half Lost", "Void")
 LEDGER_TYPES = ("Opening balance", "Deposit", "Withdrawal", "Transfer in", "Transfer out", "Bonus", "Adjustment")
-TICKET_TYPES = ("Single", "Double", "Treble", "4-fold", "5-fold", "6-fold", "7-fold", "8-fold")
+TICKET_TYPES = ("Single", "Double", "Treble", "4-fold", "5-fold", "6-fold", "7-fold", "8-fold",
+                "System 2/3", "System 2/4", "System 3/4", "System 2/5", "System 3/5", "System 4/5",
+                "System 2/6", "System 3/6", "System 4/6", "System 5/6")
 CURRENCIES = ("PHP", "USDT", "TRX")
 POTS = ("Paolo",)
 
@@ -68,17 +70,21 @@ J2:J="Void",1,J2:J="Half Won",(o+1)/2,J2:J="Half Lost",0.5,TRUE,))))''',
     "Bets": {
         "header": ["Slip ID", "Placed (PHT)", "Account", "Type", "Stake", "Total odds", "Legs", "Result",
                    "Return", "P&L", "Cash-out", "Pot", "Placed by", "Notes", "Return at tip odds",
-                   "Currency", "FX to ₱", "Stake ₱", "P&L ₱", "Book slip №"],
+                   "Currency", "FX to ₱", "Stake ₱", "P&L ₱", "Book slip №", "System return",
+                   "System return at tip odds"],
         "formulas": {
             "G2": '=MAP(A2:A,LAMBDA(id,IF(id="",,COUNTIF(Legs!A2:A,id))))',
-            "H2": '''=MAP(A2:A,K2:K,LAMBDA(id,co,IF(id="",,IFERROR(LET(r,FILTER(Legs!J2:J,Legs!A2:A=id),
-IF(co<>"","Cashed out",IF(COUNTIF(r,"")>0,"Open",IF(COUNTIF(r,"Lost")>0,"Lost",
-IF(COUNTIF(r,"Void")=ROWS(r),"Void","Won"))))),"No legs"))))''',
-            "I2": '''=MAP(A2:A,E2:E,K2:K,H2:H,LAMBDA(id,stake,co,res,IF((id="")+(res="Open")+(res="No legs"),,
-IF(res="Cashed out",co,ROUND(stake*PRODUCT(FILTER(Legs!L2:L,Legs!A2:A=id)),2)))))''',
+            # System tickets (Type "System k/n"): their return is in U/V, written by the book sync script.
+            "H2": '''=MAP(A2:A,K2:K,D2:D,E2:E,U2:U,LAMBDA(id,co,ty,stake,sr,IF(id="",,IFERROR(LET(r,FILTER(Legs!J2:J,Legs!A2:A=id),
+IF(co<>"","Cashed out",IF(COUNTIF(r,"")>0,"Open",IF(COUNTIF(r,"Void")=ROWS(r),"Void",
+IF(LEFT(ty,6)="System",IF(sr="","Open",IF(sr>=stake,"Won",IF(sr>0,"Partly won","Lost"))),
+IF(COUNTIF(r,"Lost")>0,"Lost","Won")))))),"No legs"))))''',
+            "I2": '''=MAP(A2:A,E2:E,K2:K,H2:H,D2:D,U2:U,LAMBDA(id,stake,co,res,ty,sr,IF((id="")+(res="Open")+(res="No legs"),,
+IF(res="Cashed out",co,IF(res="Void",stake,IF(LEFT(ty,6)="System",sr,
+ROUND(stake*PRODUCT(FILTER(Legs!L2:L,Legs!A2:A=id)),2)))))))''',
             "J2": '=ARRAYFORMULA(IF((A2:A="")+(I2:I=""),,I2:I-E2:E))',
-            "O2": '''=MAP(A2:A,E2:E,H2:H,LAMBDA(id,stake,res,IF((id="")+(res="Open")+(res="No legs"),,
-ROUND(stake*PRODUCT(FILTER(Legs!M2:M,Legs!A2:A=id)),2))))''',
+            "O2": '''=MAP(A2:A,E2:E,H2:H,D2:D,V2:V,LAMBDA(id,stake,res,ty,sv,IF((id="")+(res="Open")+(res="No legs"),,
+IF(res="Void",stake,IF(LEFT(ty,6)="System",sv,ROUND(stake*PRODUCT(FILTER(Legs!M2:M,Legs!A2:A=id)),2))))))''',
             "P2": '=ARRAYFORMULA(IF(A2:A="",,IFERROR(VLOOKUP(C2:C,Accounts!A2:D,4,FALSE),"?")))',
             # Q (FX to ₱) is a value written by log-bets: the rate on the day the ticket was placed.
             "R2": '=ARRAYFORMULA(IF((A2:A="")+(Q2:Q=""),,E2:E*Q2:Q))',
@@ -86,8 +92,8 @@ ROUND(stake*PRODUCT(FILTER(Legs!M2:M,Legs!A2:A=id)),2))))''',
         },
         "dropdowns": {2: "=Accounts!$A$2:$A", 3: TICKET_TYPES, 11: POTS},
         "formats": {"B": WHEN, "E": MONEY, "F": ODDS, "I": MONEY, "J": SIGNED, "K": MONEY, "O": MONEY,
-                    "Q": "#,##0.0000", "R": MONEY, "S": SIGNED},
-        "cols": 20,
+                    "Q": "#,##0.0000", "R": MONEY, "S": SIGNED, "U": MONEY, "V": MONEY},
+        "cols": 22,
     },
     "Balances": {
         "header": ["Account", "Opening", "Deposits", "Withdrawals", "Transfers (net)", "Bonus / adj.",
@@ -172,9 +178,50 @@ def build_tab(sh, t, spec):
     return ws
 
 
+def upgrade(sh, apply):
+    """Bring existing tabs up to the current TABS spec: width, header row, formula cells, formats
+    and dropdowns. Data cells are never written (formula cells are formula-only by design)."""
+    for t in ORDER_CREATE:
+        spec = TABS[t]
+        if t == "Dashboard" or not spec["header"]:
+            continue
+        ws = sh.worksheet(t)
+        current = ws.row_values(1)
+        changes = [h for h in spec["header"] if h not in current]
+        print(f"  {t}: new columns {changes or 'none'}; {len(spec.get('formulas', {}))} formula cells refreshed")
+        if not apply:
+            continue
+        if ws.col_count < spec["cols"]:
+            ws.add_cols(spec["cols"] - ws.col_count)
+        ws.update(range_name="A1", values=[spec["header"]], value_input_option="RAW")
+        if spec.get("formulas"):
+            ws.batch_update([{"range": c, "values": [[f]]} for c, f in spec["formulas"].items()],
+                            value_input_option="USER_ENTERED")
+        fmts = [{"range": f"{l}2:{l}", "format": {"numberFormat": {
+            "type": "DATE_TIME" if "yyyy" in pat else "NUMBER", "pattern": pat}}}
+            for l, pat in spec.get("formats", {}).items()]
+        fmts.append({"range": f"A1:{chr(64 + spec['cols'])}1", "format": {"textFormat": {"bold": True}}})
+        ws.batch_format(fmts)
+        reqs = []
+        for col, src in spec.get("dropdowns", {}).items():
+            rng = {"sheetId": ws.id, "startRowIndex": 1, "endRowIndex": ws.row_count, "startColumnIndex": col, "endColumnIndex": col + 1}
+            cond = ({"type": "ONE_OF_RANGE", "values": [{"userEnteredValue": src}]} if isinstance(src, str)
+                    else {"type": "ONE_OF_LIST", "values": [{"userEnteredValue": v} for v in src]})
+            reqs.append({"setDataValidation": {"range": rng, "rule": {"condition": cond, "strict": True, "showCustomUi": True}}})
+        if reqs:
+            sh.batch_update({"requests": reqs})
+        time.sleep(4)
+
+
 def main():
     apply = "--apply" in sys.argv
     rebuild = "--rebuild" in sys.argv
+    if "--upgrade" in sys.argv:
+        from inspect_sheet import READONLY, READWRITE, client
+        sh = client(READWRITE if apply else READONLY).open_by_key(BOOK_KEY)
+        print(f"[{sh.title}] upgrade {'APPLY' if apply else 'dry run'}")
+        upgrade(sh, apply)
+        return
     from inspect_sheet import READONLY, READWRITE, client
     sh = client(READWRITE if apply else READONLY).open_by_key(BOOK_KEY)
     existing = [w.title for w in sh.worksheets()]

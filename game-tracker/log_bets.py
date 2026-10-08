@@ -20,6 +20,8 @@ import re
 import sys
 from dataclasses import dataclass, field
 from datetime import datetime, timedelta
+from itertools import combinations
+from math import prod
 
 from fixtures import name_score
 from log_picks import SHEETS
@@ -27,7 +29,7 @@ from parse import Selection
 from setup_book import BOOK_KEY
 
 SHEETS_EPOCH = datetime(1899, 12, 30)
-BOOK_UTC_OFFSET = {"1xbet": 7}  # 1xbet shows times in UTC+7 on Paolo's account
+BOOK_UTC_OFFSET = {"1xbet": 7, "bet88": 8}  # 1xbet shows UTC+7 on Paolo's account; bet88 shows PHT
 PHT_OFFSET = 8
 BOOK_START = datetime(2026, 10, 8)
 SLIP_STATUS = {"win": "Won", "won": "Won", "loss": "Lost", "lost": "Lost", "return": "Void", "refund": "Void",
@@ -39,12 +41,34 @@ class SlipParseError(ValueError):
     pass
 
 
-def parse_slip_market(text, sport):
-    """1xbet's market text -> Selection (same fields as the tips)."""
-    x = re.sub(r"\s*\(including overtime\)\s*", " ", text, flags=re.I).strip()
-    x = re.sub(r":.*$", "", x) if not x.lower().startswith("1x2") else x  # drop ": Team A - Team B" tails
+def _side_from_team(name, home, away, text):
+    h, a = name_score(name, home or ""), name_score(name, away or "")
+    if max(h, a) < 0.8 or h == a:
+        raise SlipParseError(f"can't tell which team {name!r} is in {text!r}")
+    return "Home" if h > a else "Away"
+
+
+def parse_slip_market(text, sport, home=None, away=None):
+    """A book's market text -> Selection (same fields as the tips).
+    1xbet: "1X2: W2: A - B", "Handicap 1 (-8.5): ...", "Total Over (2.5): ...".
+    bet88: "1x2 KS Lechia Gdansk", "Handicap (incl. overtime) BC Aris (-8.5)", "Total over 2.5"."""
+    x = re.sub(r"\s*\((including|incl\.) overtime\)\s*", " ", text, flags=re.I).strip()
+    x = re.sub(r":.*$", "", x) if not x.lower().startswith("1x2:") else x  # drop ": Team A - Team B" tails
     low = x.lower()
     half = "1H" if re.search(r"1st half|first half|\b1h\b", low) else "FT"
+    # bet88 style: the team is named instead of 1/2
+    m = re.match(r"^1x2 (.+)$", x, flags=re.I)
+    if m and not low.startswith("1x2:"):
+        if m[1].strip().lower() in ("draw", "x"):
+            raise SlipParseError(f"draw bet {text!r}: no tip market for it")
+        side = _side_from_team(m[1], home, away, text)
+        return Selection("Handicap", half, side, -0.5) if sport == "Football" else Selection("Moneyline", "FT", side)
+    m = re.match(r"^(?:asian )?handicap (.+?) \(([+-]?\d+(?:\.\d+)?)\)$", x, flags=re.I)
+    if m and not re.match(r"^[12]$", m[1].strip()):
+        return Selection("Handicap", half, _side_from_team(m[1], home, away, text), float(m[2]))
+    m = re.match(r"^total (over|under) (\d+(?:\.\d+)?)$", low)
+    if m:
+        return Selection("Total", half, m[1].title(), float(m[2]))
     m = re.match(r"^1x2:\s*(w1|w2|x)\b", low)
     if m:
         if m[1] == "x":
@@ -67,6 +91,14 @@ def parse_slip_market(text, sport):
     if m:
         return Selection("BTTS", half, m[1].title())
     raise SlipParseError(f"unrecognised slip market {text!r}")
+
+
+def system_return(factors, k, total_stake):
+    """Return of a system k/n: every k-leg combination at total_stake / C(n, k), each paying stake ×
+    the product of its legs' factors (odds when won, 1 void, 0 lost, half results as in an acca)."""
+    combos = list(combinations(factors, k))
+    per = total_stake / len(combos)
+    return round(sum(per * prod(c) for c in combos), 2)
 
 
 def to_pht(book_time, book):
@@ -108,7 +140,9 @@ def find_tip(leg_sel, sport, home, away, kickoff, tips):
     """(tip, note) for the best tip on the same match and market/side; note says if the line moved."""
     same_match = [t for t in tips if t.sport == sport
                   and min(name_score(home, t.home), name_score(away, t.away)) >= 0.8
-                  and (t.kickoff is None or kickoff is None or abs((t.kickoff - kickoff).total_seconds()) <= 36 * 3600)]
+                  # wide window: book dates can differ from the tip's (reschedules, tennis order of play);
+                  # teams + market + side + line rarely repeat within 4 days
+                  and (t.kickoff is None or kickoff is None or abs((t.kickoff - kickoff).total_seconds()) <= 96 * 3600)]
     same_market = [t for t in same_match if (t.sel.market, t.sel.period, t.sel.side) ==
                    (leg_sel.market, leg_sel.period, leg_sel.side)]
     exact = [t for t in same_market if t.sel.line == leg_sel.line]
@@ -147,14 +181,23 @@ def plan(slips, tips, existing_slip_nos, next_n, fx, accounts):
         sid = f"S-{next_n:04d}"
         next_n += 1
         placed = to_pht(s["placed"], book)
-        prod = 1.0
-        out.lines.append(f"ticket {sid} (slip № {no}) {acct} {TYPES.get(len(s['legs']), f'{len(s['legs'])}-fold')} "
-                         f"stake {s['stake']:,} {cur} @ {s['total_odds']}  placed {placed:%a %d %b %H:%M} PHT")
+        acc_odds = 1.0
+        n_legs = len(s["legs"])
+        system = s.get("system")  # "3/5": every 3-leg combination of 5 legs, stake split evenly
+        if system:
+            k, n_sys = (int(v) for v in system.split("/"))
+            if n_sys != n_legs:
+                out.problems.append(f"{sid}: system {system} but {n_legs} legs transcribed")
+            ttype = f"System {system}"
+        else:
+            ttype = TYPES.get(n_legs, f"{n_legs}-fold")
+        out.lines.append(f"ticket {sid} (slip № {no}) {acct} {ttype} stake {s['stake']:,} {cur}"
+                         f"{'' if system else ' @ ' + str(s['total_odds'])}  placed {placed:%a %d %b %H:%M} PHT")
         for n, leg in enumerate(s["legs"], start=1):
-            prod *= leg["odds"]
+            acc_odds *= leg["odds"]
             ko = to_pht(leg["kickoff"], book) if leg.get("kickoff") else None
             try:
-                sel = parse_slip_market(leg["market"], leg["sport"])
+                sel = parse_slip_market(leg["market"], leg["sport"], leg["home"], leg["away"])
             except SlipParseError as e:
                 sel = None
                 if not leg.get("own"):
@@ -171,6 +214,9 @@ def plan(slips, tips, existing_slip_nos, next_n, fx, accounts):
                                     f"Own pick? (set \"own\": true) or name the tip (\"tip\": \"T-....\")")
             if note.startswith("line moved"):
                 out.checks.append(f"{sid} leg {n}: {note} ({tip.id})")
+            if tip and tip.kickoff and ko and abs((tip.kickoff - ko).total_seconds()) > 3 * 3600:
+                out.checks.append(f"{sid} leg {n}: book kickoff {ko:%a %d %b %H:%M} vs tip {tip.id} "
+                                  f"{tip.kickoff:%a %d %b %H:%M}: rescheduled, or a different match?")
             result = SLIP_STATUS.get(str(leg.get("status", "")).lower(), "")
             if tip and tip.result and not result:
                 result = tip.result
@@ -183,15 +229,19 @@ def plan(slips, tips, existing_slip_nos, next_n, fx, accounts):
                              tip.odds if tip and not note else None, result or None,
                              serial(tip.kickoff) if tip and tip.kickoff else (serial(ko) if ko else None),
                              tip.sel.line if tip and note.startswith("line moved") else None])
-        if abs(prod / s["total_odds"] - 1) > 0.005:
-            out.problems.append(f"{sid}: legs multiply to {prod:.3f}, slip says {s['total_odds']}: check the transcription")
-        if s.get("potential") and abs(s["stake"] * s["total_odds"] / s["potential"] - 1) > 0.002:
-            out.problems.append(f"{sid}: stake × odds = {s['stake'] * s['total_odds']:.2f}, slip says {s['potential']}")
+        if system:
+            max_win = system_return([l["odds"] for l in s["legs"]], k, s["stake"])
+            if s.get("potential") and abs(max_win / s["potential"] - 1) > 0.002:
+                out.problems.append(f"{sid}: all legs winning pays {max_win:,.2f}, slip says {s['potential']}: check the odds")
+        else:
+            if abs(acc_odds / s["total_odds"] - 1) > 0.005:
+                out.problems.append(f"{sid}: legs multiply to {acc_odds:.3f}, slip says {s['total_odds']}: check the transcription")
+            if s.get("potential") and abs(s["stake"] * s["total_odds"] / s["potential"] - 1) > 0.002:
+                out.problems.append(f"{sid}: stake × odds = {s['stake'] * s['total_odds']:.2f}, slip says {s['potential']}")
         rate = fx.get(cur)
         if rate in (None, ""):
             out.problems.append(f"{sid}: no FX rate for {cur}")
-        n_legs = len(s["legs"])
-        out.bets.append([sid, serial(placed), acct, TYPES.get(n_legs, f"{n_legs}-fold"), s["stake"], s["total_odds"],
+        out.bets.append([sid, serial(placed), acct, ttype, s["stake"], None if system else s["total_odds"],
                          "Paolo", "Paolo", s.get("notes", ""), rate, no])
         if s.get("opening"):
             out.ledger.append([serial(BOOK_START), acct, "Opening balance", s["stake"], "Paolo",
