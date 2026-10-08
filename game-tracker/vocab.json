@@ -128,5 +128,6 @@
   "league_aliases": {
     "SuperLiga României": "SuperLiga România"
   },
-  "team_aliases": {}
+  "team_aliases": {},
+  "api_team_aliases": {}
 }

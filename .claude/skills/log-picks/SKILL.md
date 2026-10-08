@@ -44,7 +44,15 @@ PYTHONIOENCODING=utf-8 ../.venv/Scripts/python log_picks.py <tsv> --apply
 ```
 Report the IDs and sheet rows written. Commit `vocab.json` if it changed.
 
+## 5. Then sync kickoffs
+Run `sync.py` (dry run) right after logging, show Paolo what it found, and `--apply` on his yes:
+```
+PYTHONIOENCODING=utf-8 ../.venv/Scripts/python sync.py
+```
+Picks more than a day ahead stay "No kickoff" until a later sync (free-plan window).
+
 ## Notes
 - Default target is the live sheet. `--staging` targets the staging copy; use it to try anything new.
-- Kickoffs for football/basketball: not filled yet (rows show "No kickoff") until the api-sports lookup is added. Tennis kickoffs and results are Paolo's.
+- Kickoffs for football/basketball come from `sync.py` (api-sports, yesterday..tomorrow only). Tennis kickoffs and results are Paolo's.
+- When Paolo says "sync" on its own: run `sync.py` dry run, show the found / CHECK / not-found lines, apply on his yes. CHECK lines: ask him, then re-run with `--accept <IDs>`.
 - Duplicates are matched on Home + Away + Market + Period + Side + Line (accents and case ignored), not on kickoff.
