@@ -98,3 +98,4 @@ Staking or edge estimates per tip (no probabilities exist; it treats every tip e
 7. Held matches: **de-prioritised**, not excluded.
 8. Betting day **12:00 → 12:00 PHT**.
 9. Output: printed **and** the "Multis plan" tab in the private sheet (dry run first, `--apply` to write).
+10. **Provision (not active now): Paolo's odds floor of 1.85.** He usually only takes odds above 1.85. Build the min-odds rule as `min_odds = max(tip × (1 − threshold), floor)` with `--odds-floor` defaulting to off (None); when set, legs whose tip odds are already below the floor are flagged "below your floor".
