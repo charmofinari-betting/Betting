@@ -36,7 +36,7 @@ python multis.py --day 2026-10-10 \
 ```
 - **`--day`**: the betting day = kickoffs from 12:00 PHT that day to 12:00 next day (late-night European kickoffs belong to the evening before). Default today.
 - **`--plan FORMAT:TOTAL_STAKE`** (repeatable): the total ₱ he has decided to spend on that format. Formats: `double`, `treble`, `4fold`, `system k/n` (e.g. `system3/5`). **Total daily stake is the sum, fixed in advance, and never exceeded.**
-- **Tickets per plan:** `TOTAL / --unit` (default ₱1,000) rounded; `--tickets double:6` overrides. Stakes are equal per ticket in a plan. `--jitter` varies them ±10% in whole ₱10 (sum unchanged), because round equal stakes are one of the signals books use.
+- **Tickets per plan:** `TOTAL / --unit` (default ₱1,000) rounded; `--tickets double:6` overrides. Stakes vary ±10% in whole ₱10 by default (sum unchanged), because round equal stakes are one of the signals books use; `--no-jitter` makes them equal.
 - **Books are NOT assigned (decision 2026-10-08).** Paolo chooses the book per ticket himself. Provision for later: every ticket in the plan carries a `book` field (empty for now), and allocation lives in its own function `allocate_books()` behind a `--books 1xbet:50,bet88:20,...` flag that is **not built yet**. The exposure section already shows ₱ per book from what he holds, so adding allocation later needs no restructuring.
 - `--exclude T-0412,...`, `--only-leagues`, `--min-odds`, `--max-matches N` to shape the pool. `--seed N` for a different (but reproducible) draw.
 
