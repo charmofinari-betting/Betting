@@ -160,6 +160,11 @@ def apply(key, rows):
     op.freeze(rows=1)
     print(f"[{sh.title}] '{formulas.OPEN_PICKS_TAB}' tab set up")
 
+    # NOW() only refreshes on edits by default; recalc every minute keeps Status and Open picks current.
+    sh.batch_update({"requests": [{"updateSpreadsheetProperties": {
+        "properties": {"autoRecalc": "MINUTE"}, "fields": "autoRecalc"}}]})
+    print(f"[{sh.title}] recalculation set to every minute")
+
     after = dash.get_all_values()
     changed = [(i, j, b, a) for i in range(max(len(before), len(after)))
                for j in range(max(len(before[i]) if i < len(before) else 0, len(after[i]) if i < len(after) else 0))
