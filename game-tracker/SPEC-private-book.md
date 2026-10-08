@@ -62,12 +62,17 @@ Ticket is **open** until every leg has a result.
 
 ## 5. Input and scripts (same pattern as the picks sheet)
 - **`log-bets` skill:** Paolo sends bet-slip screenshots (top part with type/stake + the legs) → Claude transcribes → script matches each leg to a tip ID (by match + selection, within the tip's kickoff day), computes drift → dry run → write on "yes". Legs without a matching tip are asked about ("own pick?").
+- **Matching slip markets to tips:** 1xbet writes moneylines as 1X2. Football **W1/W2 = Handicap -0.5** (T-0436 `AWAY -0.5` = slip `W2`); tennis/basketball **W1/W2 = ML HOME/AWAY**. A slip leg that only resembles a tip (e.g. W2 when the tip was DNB `AWAY 0.0`) is **not** auto-linked; it is asked about.
+- 1xbet's "Potential winnings" is the gross return (stake × odds), used as a check on the transcription.
 - **`book_sync.py`:** copies leg results from the shared sheet for open tickets; dry run, `--apply`.
 - Kickoff times come from the tips/API (PHT). 1xbet shows times 1h earlier (account likely on UTC+7); ignored.
 
 ## 6. Worked example (from Paolo's 1xbet slip, 8 Oct)
 4-fold, ₱1,500: T-0602 Gadamauri ML 1.52 · T-0603 Dabrowski/Stefani ML 1.55 · T-0601 Rincon ML 1.70 · T-0499 Bayern–Virtus Over 169.5 1.814.
 Total ≈ 7.27 → ₱10,898 if all win. At tip odds the same ticket would be ≈ 9.75 (₱14,628): drift costs ~25% of the payout.
+
+Treble, ₱1,500, odds 7.021: T-0436 Novorizontino W2 (tip AWAY -0.5) 2.40 → 1.94 (−19.2%) · T-0567 Correcaminos W2 (tip AWAY -0.5) 2.47 → 1.73 (−30.0%) · T-0599 Rublev/Khachanov W1 2.05 → 2.092 (+2.0%).
+₱10,531.76 if all win; at tip odds ≈ 12.15 (₱18,224): drift costs ~42% of the payout.
 
 ## 7. Build order
 1. Create tabs + formulas on the private sheet; Paolo enters opening balances.
