@@ -72,7 +72,7 @@ Ticket is **open** until every leg has a result.
 Total ≈ 7.27 → ₱10,898 if all win. At tip odds the same ticket would be ≈ 9.75 (₱14,628): drift costs ~25% of the payout.
 
 Treble, ₱1,500, odds 7.021: T-0436 Novorizontino W2 (tip AWAY -0.5) 2.40 → 1.94 (−19.2%) · T-0567 Correcaminos W2 (tip AWAY -0.5) 2.47 → 1.73 (−30.0%) · T-0599 Rublev/Khachanov W1 2.05 → 2.092 (+2.0%).
-₱10,531.76 if all win; at tip odds ≈ 12.15 (₱18,224): drift costs ~42% of the payout.
+₱10,531.76 if all win; at tip odds ≈ 12.15 (₱18,229): drift costs ~42% of the payout.
 
 ## 7. Build order
 1. Create tabs + formulas on the private sheet; Paolo enters opening balances.
