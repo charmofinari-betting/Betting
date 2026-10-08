@@ -16,11 +16,16 @@ from pathlib import Path
 
 from fixtures import PHT, SHEETS_EPOCH, fetch, games, match
 from log_picks import SHEETS, VOCAB
+from parse import Selection
+from settle import settle
 
 HERE = Path(__file__).resolve().parent
 LAST_RUN = HERE / "data" / "last_sync.json"
-COL = {"id": 0, "kickoff": 1, "sport": 2, "match": 5, "home": 6, "away": 7, "result": 15, "fixture": 19}
+COL = {"id": 0, "kickoff": 1, "sport": 2, "match": 5, "home": 6, "away": 7, "market": 8, "period": 9,
+       "side": 10, "line": 11, "selection": 12, "result": 15, "status": 16, "fixture": 19}
 API_SPORTS = ("Football", "Basketball")
+FINISHED = {"FT", "AET", "PEN", "AOT"}          # settle from the score
+NOT_PLAYED = {"PST", "CANC", "ABD", "AWD", "WO", "SUSP", "INT"}  # Paolo decides (books differ on voids)
 
 
 def window(today):
@@ -74,8 +79,23 @@ def main():
             continue
         todo.setdefault((r[COL["sport"]], r[COL["home"]], r[COL["away"]]), []).append((i, r))
 
+    # Rows to settle: fixture known, no result yet.
+    to_settle, too_late, manual = {}, [], []
+    for i, r in enumerate(rows[2:], start=3):
+        r = r + [""] * (20 - len(r))
+        if not r[0] or r[COL["result"]]:
+            continue
+        if r[COL["fixture"]]:
+            ko = datetime.strptime(r[COL["kickoff"]], "%d %B %Y %H:%M")
+            if ko.date().isoformat() in days:
+                to_settle.setdefault((r[COL["sport"]], ko.date().isoformat(), r[COL["fixture"]]), []).append((i, r))
+            elif ko.date().isoformat() < days[0]:
+                too_late.append(r)
+        elif r[COL["status"]] == "Needs result":
+            manual.append(r)  # tennis, or a match the API never found
+
     # Fetch only the days we need: the kickoff's day if known and in the window, else the whole window.
-    needed = set()
+    needed = {(sport, d) for sport, d, _ in to_settle}
     for (sport, _, _), group in todo.items():
         ko = group[0][1][COL["kickoff"]]
         ko_day = None
@@ -113,6 +133,10 @@ def main():
             for i, _ in group:
                 updates.append({"range": f"B{i}", "values": [[g.kickoff]]})
                 updates.append({"range": f"T{i}", "values": [[f"{sport[0]}{g.id}"]]})
+            # Settle in this same run if it's already played.
+            to_settle.setdefault((sport, day_of(g.kickoff), f"{sport[0]}{g.id}"), []).extend(group)
+            found_ids = {r[COL["id"]] for _, r in group}
+            manual[:] = [r for r in manual if r[COL["id"]] not in found_ids]
         elif conf == "check":
             checks.append(group[0][1][COL["id"]])
             print(f"  CHECK  {ids}: {home} vs {away} -> {g.home} vs {g.away} [{g.league}, {g.country}] "
@@ -127,17 +151,54 @@ def main():
         print(f"  to accept the CHECK lines after confirming: --accept {','.join(checks)}")
     print(f"  summary: {sure} found, {len(checks)} to check, {len(missing)} not found")
 
+    # Settlement
+    by_id = {f"{g.sport[0]}{g.id}": g for g in pool}
+    settled, waiting, ask = 0, 0, []
+    for (sport, d, fid), group in sorted(to_settle.items(), key=lambda kv: kv[1][0][0]):
+        g = by_id.get(fid)
+        if g is None:
+            ask.append((group, f"fixture {fid} not in the API data for {d}"))
+            continue
+        if g.status in NOT_PLAYED:
+            ask.append((group, f"match status {g.status} (postponed/cancelled/abandoned)"))
+            continue
+        if g.status not in FINISHED or g.home_score is None:
+            waiting += 1
+            continue
+        ht = (g.home_ht, g.away_ht)
+        score = f"{g.home_score}-{g.away_score}" + (f" (HT {g.home_ht}-{g.away_ht})" if None not in ht else "")
+        print(f"  result {g.home} vs {g.away}: {score}{'' if g.status == 'FT' else ' [' + g.status + ']'}")
+        for i, r in group:
+            line = float(r[COL["line"]]) if r[COL["line"]] else None
+            sel = Selection(r[COL["market"]], r[COL["period"]], r[COL["side"]], line)
+            res = settle(sel, sport, (g.home_score, g.away_score), ht if None not in ht else None)
+            updates.append({"range": f"O{i}", "values": [[score]]})
+            if res is None:
+                ask.append(([(i, r)], f"{r[COL['selection']]} can't be settled from the score; score {score} filled in"))
+                continue
+            settled += 1
+            updates.append({"range": f"P{i}", "values": [[res]]})
+            print(f"           {r[COL['id']]} {r[COL['selection']]:22s} -> {res}")
+    for group, why in ask:
+        print(f"  ASK    {', '.join(r[COL['id']] for _, r in group)} {group[0][1][COL['match']]}: {why}")
+    for r in too_late:
+        print(f"  BY HAND {r[COL['id']]} {r[COL['match']]} {r[COL['selection']]}: kickoff before the window, enter the result by hand")
+    for r in manual:
+        print(f"  BY HAND {r[COL['id']]} {r[COL['match']]} {r[COL['selection']]} ({r[COL['sport']]}): needs a result")
+    print(f"  results: {settled} settled, {waiting} matches not finished yet, {len(ask)} to ask, "
+          f"{len(too_late) + len(manual)} by hand")
+
     LAST_RUN.parent.mkdir(parents=True, exist_ok=True)
     LAST_RUN.write_text(json.dumps({"date": today.isoformat()}))
     if not apply:
         return
     if rows[1][19:20] != ["Fixture ID"]:
         updates.append({"range": "T2", "values": [["Fixture ID"]]})
-    n_rows = sum(1 for u in updates if u["range"].startswith("T")) - (1 if {"range": "T2", "values": [["Fixture ID"]]} in updates else 0)
+    n_cells = len(updates)
     if updates:
         ws.batch_update(updates, value_input_option="RAW")
     VOCAB.write_text(json.dumps(vocab, ensure_ascii=False, indent=2), encoding="utf-8")
-    print(f"  written: {sure} matches, {n_rows} rows")
+    print(f"  written: {sure} fixtures found, {settled} picks settled ({n_cells} cells)")
 
 
 if __name__ == "__main__":

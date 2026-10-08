@@ -76,9 +76,12 @@ def games(sport, data):
     for g in data.get("response", []):
         if sport == "Football":
             f, ht = g["fixture"], g["score"]["halftime"]
+            # Bets settle on 90 minutes: use the full-time score, not "goals" (which adds extra time).
+            ft = g["score"]["fulltime"]
+            home, away = (ft["home"], ft["away"]) if ft["home"] is not None else (g["goals"]["home"], g["goals"]["away"])
             out.append(Game(sport, f["id"], g["teams"]["home"]["name"], g["teams"]["away"]["name"],
                             serial(f["timestamp"]), g["league"]["name"], g["league"]["country"] or "",
-                            f["status"]["short"], g["goals"]["home"], g["goals"]["away"], ht["home"], ht["away"]))
+                            f["status"]["short"], home, away, ht["home"], ht["away"]))
         else:
             s = g["scores"]
             ht = [None, None]
