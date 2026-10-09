@@ -9,7 +9,7 @@ from dataclasses import dataclass
 
 MARKETS = (
     "Handicap", "Total", "Home team total", "Away team total", "Moneyline", "BTTS",
-    "Corners", "Cards", "Win either half", "Win both halves", "Score in both halves",
+    "Corners", "Cards", "Home team cards", "Away team cards", "Cards handicap", "Win either half", "Win both halves", "Score in both halves",
     "Both halves over",
 )
 PERIODS = ("FT", "1H", "2H")
@@ -45,6 +45,10 @@ _RULES = [
      lambda m, half: Selection("BTTS", m[2] or "FT", m[1].title())),
     (rf"^(CORNERS|CARDS) (OVER|UNDER) {NUM}$",
      lambda m, half: Selection(m[1].title(), half, m[2].title(), float(m[3]))),
+    (rf"^CARDS (HOME|AWAY) (OVER|UNDER) {NUM}$",
+     lambda m, half: Selection(f"{m[1].title()} team cards", "FT", m[2].title(), float(m[3]))),
+    (rf"^CARDS (HOME|AWAY) {NUM}$",
+     lambda m, half: Selection("Cards handicap", "FT", m[1].title(), float(m[2]))),
     (r"^(HOME|AWAY) TEAM TO WIN EITHER HALF$",
      lambda m, half: Selection("Win either half", "FT", m[1].title())),
     (r"^(HOME|AWAY) TEAM TO WIN BOTH HALVES$",
@@ -88,4 +92,6 @@ def market_detail(sel: Selection, sport: str) -> str:
         return "BTTS 2nd half" if sel.period == "2H" else f"BTTS {sel.side}"
     if sel.market in ("Corners", "Cards"):
         return f"{sel.market} {sel.side}"
+    if sel.market.endswith("team cards"):
+        return f"Team cards {sel.side}"
     return sel.market  # Moneyline and the half markets keep their own names

@@ -43,7 +43,7 @@ def _against_line(value, line, side_sign):
 
 
 def settle(sel: Selection, sport: str, ft, ht=None):
-    if sel.market in ("Corners", "Cards"):
+    if sel.market in ("Corners", "Cards", "Home team cards", "Away team cards", "Cards handicap"):
         return None
     if sel.period == "1H" or (sel.market == "BTTS" and sel.period == "2H"):
         if ht is None or None in ht:

@@ -69,6 +69,8 @@ class OtherMarketsTest(unittest.TestCase):
     def test_needs_paolo(self):
         self.assertIsNone(S("CORNERS UNDER 9.5", (1, 0), (0, 0)))
         self.assertIsNone(S("CARDS UNDER 4.5", (1, 0), (0, 0)))
+        for text in ("CARDS HOME OVER 1.5", "CARDS AWAY UNDER 2.5", "CARDS AWAY -0.5"):
+            self.assertIsNone(S(text, (1, 0), (0, 0)))
         self.assertIsNone(S("HOME TEAM TO WIN EITHER HALF", (1, 0)))  # no HT score
 
 

@@ -10,6 +10,7 @@ Dashboard keep working; only its formulas change.
 """
 from parse import MARKETS, PERIODS, SIDES
 
+MARKETS_NEW = ("Home team cards", "Away team cards", "Cards handicap")
 RESULTS = ("Won", "Lost", "Half Won", "Half Lost", "Void")
 
 # Row guard: a Sheet1 row exists when it has an ID.
@@ -34,8 +35,9 @@ CALC = {
     "H2": f'''=ARRAYFORMULA(LET(mk,Sheet1!I3:I,pd,Sheet1!J3:J,IF({_G},,
 IF(mk="Total",IF(pd="1H","Total (1st half)","Total"),
 IF(REGEXMATCH(mk,"team total$"),"Team goals",
+IF(REGEXMATCH(mk,"(?i)cards"),"Cards",
 IF(REGEXMATCH(mk,"half|halves"),"Half markets",
-mk))))))''',
+mk)))))))''',
     # Odds, Result, Units P&L, Status
     "I2": f'=ARRAYFORMULA(IF({_G},,Sheet1!N3:N))',
     "J2": f'=ARRAYFORMULA(IF({_G},,PROPER(TRIM(Sheet1!P3:P))))',
@@ -52,11 +54,12 @@ IF(mk="Total",IF(pd="1H","1st-half "&sd,IF(bk,"Points ","Goals ")&sd),
 IF(REGEXMATCH(mk,"team total$"),"Team goals "&sd&IF(pd="1H"," (1st half)",""),
 IF(mk="BTTS",IF(pd="2H","BTTS 2nd half","BTTS "&sd),
 IF((mk="Corners")+(mk="Cards"),mk&" "&sd,
-mk))))))))''',
+IF(REGEXMATCH(mk,"team cards$"),"Team cards "&sd,
+mk)))))))))''',
     # Side, Position (match | side). Side keeps the old grouping: team-total Overs
-    # count as that team's side, Unders as Under; Cards and Corners are their own side.
+    # count as that team's side, Unders as Under; Cards (all card markets) and Corners are their own side.
     "N2": f'''=ARRAYFORMULA(LET(mk,Sheet1!I3:I,sd,Sheet1!K3:K,s,
-IF(mk="Cards","Cards",IF(mk="Corners","Corners",IF(mk="BTTS","BTTS "&sd,
+IF(REGEXMATCH(mk,"(?i)cards"),"Cards",IF(mk="Corners","Corners",IF(mk="BTTS","BTTS "&sd,
 IF(REGEXMATCH(mk,"team total$"),IF(sd="Under","Under",LEFT(mk,4)),sd)))),
 HSTACK(IF({_G},,s),IF({_G},,Sheet1!F3:F&" | "&s))))''',
     # Odds band
