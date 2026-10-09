@@ -70,7 +70,7 @@ def parse_slip_market(text, sport, home=None, away=None):
             raise SlipParseError(f"draw bet {text!r}: no tip market for it")
         side = _side_from_team(m[1], home, away, text)
         return Selection("Handicap", half, side, -0.5) if sport == "Football" else Selection("Moneyline", "FT", side)
-    m = re.match(r"^(?:asian )?handicap (.+?) \(([+-]?\d+(?:\.\d+)?)\)$", x, flags=re.I)
+    m = re.match(r"^(?:asian |points )?handicap (.+?) \(([+-]?\d+(?:\.\d+)?)\)$", x, flags=re.I)
     if m and not re.match(r"^[12]$", m[1].strip()):
         return Selection("Handicap", half, _side_from_team(m[1], home, away, text), float(m[2]))
     m = re.match(r"^total (?:points |goals )?(over|under) \(?(\d+(?:\.\d+)?)\)?$", low)

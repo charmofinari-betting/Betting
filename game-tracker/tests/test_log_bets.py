@@ -112,6 +112,8 @@ class Bet88AndSystemTest(unittest.TestCase):
                            "BC Aris Thessaloniki", "CB San Pablo Burgos"), Selection("Handicap", "FT", "Home", -8.5))
         self.assertEqual(p("Total under 2.5", "Football", "A", "B"), Selection("Total", "FT", "Under", 2.5))
         # 747-live
+        self.assertEqual(p("Points Handicap NB Staoueli (Wom) (-1.5)", "Basketball", "NB Staoueli (Wom)", "EL Annaba (Wom)"),
+                         Selection("Handicap", "FT", "Home", -1.5))
         self.assertEqual(p("Match Winner Alibek Kachmazov", "Tennis", "Evan Zhu", "Alibek Kachmazov"),
                          Selection("Moneyline", "FT", "Away"))
         self.assertEqual(p("Total Points Over (168.5)", "Basketball", "A", "B"), Selection("Total", "FT", "Over", 168.5))
