@@ -14,7 +14,7 @@ import time
 from datetime import datetime, timedelta
 from pathlib import Path
 
-from fixtures import PHT, SHEETS_EPOCH, fetch, games, match
+from fixtures import PHT, SHEETS_EPOCH, DateNotAvailable, fetch, games, match
 from log_picks import SHEETS, VOCAB
 from parse import Selection
 from settle import settle
@@ -102,13 +102,19 @@ def main():
         if ko:
             ko_day = datetime.strptime(ko, "%d %B %Y %H:%M").date().isoformat()
         needed |= {(sport, d) for d in ([ko_day] if ko_day in days else days if not ko_day else [])}
-    pool, spent = [], 0
+    pool, spent, skipped = [], 0, []
     for sport, d in sorted(needed):
         cached = (HERE / "data" / "api" / sport.lower() / f"{d}.json")
         fresh = cached.exists() and time.time() - cached.stat().st_mtime < 3 * 3600
-        pool += games(sport, fetch(sport, d))
+        try:
+            pool += games(sport, fetch(sport, d))
+        except DateNotAvailable:
+            skipped.append(f"{sport} {d}")  # near UTC midnight the API's window is a day behind PHT's
+            continue
         spent += 0 if fresh else 1
     print(f"  {len(todo)} matches need a fixture; fetched {len(needed)} day(s), {spent} new API request(s)")
+    if skipped:
+        print(f"  skipped (the free plan refuses these dates for now): {', '.join(skipped)}")
 
     updates, sure, checks, missing = [], 0, [], []
     for (sport, home, away), group in sorted(todo.items(), key=lambda kv: kv[1][0][0]):

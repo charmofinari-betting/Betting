@@ -45,5 +45,28 @@ class MatchTest(unittest.TestCase):
                                aliases={"Red Star": "Crvena Zvezda Meridianbet"})[1], "sure")
 
 
+class FetchRefusedTest(unittest.TestCase):
+    def test_plan_error_is_its_own_exception(self):
+        import tempfile
+        from pathlib import Path
+        from unittest import mock
+        import fixtures
+
+        class Session:
+            def __init__(self, errors):
+                self.errors = errors
+
+            def get(self, *a, **k):
+                return mock.Mock(json=lambda: {"errors": self.errors, "response": []})
+
+        with tempfile.TemporaryDirectory() as d, mock.patch.object(fixtures, "CACHE", Path(d)),                 mock.patch.object(fixtures, "KEY_FILE", Path(d) / "k"):
+            (Path(d) / "k").write_text("x")
+            with self.assertRaises(fixtures.DateNotAvailable):
+                fixtures.fetch("Basketball", "2026-10-11", session=Session({"plan": "Free plans do not have access"}))
+            with self.assertRaises(RuntimeError) as cm:
+                fixtures.fetch("Basketball", "2026-10-11", session=Session({"token": "bad"}))
+            self.assertNotIsInstance(cm.exception, fixtures.DateNotAvailable)
+
+
 if __name__ == "__main__":
     unittest.main()

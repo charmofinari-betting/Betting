@@ -56,6 +56,10 @@ def serial(ts):
     return (datetime.fromtimestamp(ts, PHT).replace(tzinfo=None) - SHEETS_EPOCH).total_seconds() / 86400
 
 
+class DateNotAvailable(RuntimeError):
+    """The free plan refuses this date (it only covers yesterday..tomorrow in the API's own UTC day)."""
+
+
 def fetch(sport, date, now=None, session=requests):
     """Raw API JSON for one sport and date (YYYY-MM-DD, PHT), from cache when fresh."""
     path = CACHE / sport.lower() / f"{date}.json"
@@ -65,6 +69,8 @@ def fetch(sport, date, now=None, session=requests):
     key = KEY_FILE.read_text(encoding="utf-8-sig").strip()
     data = session.get(ENDPOINTS[sport].format(date=date), headers={"x-apisports-key": key}, timeout=30).json()
     if data.get("errors"):
+        if "plan" in data["errors"]:
+            raise DateNotAvailable(f"api-sports {sport} {date}: {data['errors']['plan']}")
         raise RuntimeError(f"api-sports {sport} {date}: {data['errors']}")
     path.parent.mkdir(parents=True, exist_ok=True)
     path.write_text(json.dumps(data, ensure_ascii=False), encoding="utf-8")
