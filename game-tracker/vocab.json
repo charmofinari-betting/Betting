@@ -57,6 +57,7 @@
     "Germany BBL": "Basketball",
     "Germany Pro A": "Basketball",
     "HNL": "Football",
+    "Israel National League": "Football",
     "Israeli Premier League": "Football",
     "Isthmian Football League, Premier Division": "Football",
     "J. League Cup": "Football",
@@ -64,6 +65,7 @@
     "J2 League": "Football",
     "J3 League": "Football",
     "K3 League": "Football",
+    "Košarkaška liga Srbije": "Basketball",
     "LNB Élite": "Basketball",
     "League One": "Football",
     "League Two": "Football",
@@ -79,14 +81,17 @@
     "Liga Profesional de Fútbol": "Football",
     "Liga de Ascenso": "Football",
     "Liga de Expansión MX, Apertura": "Football",
+    "Liga de Primera": "Football",
     "Ligue 2": "Football",
     "Ligue 3": "Football",
+    "Misli Premier League": "Football",
     "NIFL Premiership": "Football",
     "NWSL": "Football",
     "National League": "Football",
     "Northern Premier League, Premier Division": "Football",
     "Norwegian 1st Division": "Football",
     "Orlen Basket Liga": "Basketball",
+    "PGE Basket Liga": "Basketball",
     "Pirma Lyga": "Football",
     "Polish Basketball Supercup": "Basketball",
     "Premier Division": "Football",
@@ -99,6 +104,7 @@
     "Scottish League Two": "Football",
     "Scottish Women's Premier League": "Football",
     "Segunda Federación": "Football",
+    "Serie A": "Football",
     "Serie A Women": "Football",
     "Serie B": "Football",
     "Serie C, Girone A": "Football",
@@ -113,6 +119,7 @@
     "Superettan": "Football",
     "Trendyol 1.Lig": "Football",
     "Turkish Basketball Super League": "Basketball",
+    "UEFA Conference League": "Football",
     "UEFA Nations League": "Football",
     "UEFA Women's Champions League": "Football",
     "USL Championship": "Football",
@@ -123,11 +130,22 @@
     "WE League Cup": "Football",
     "WK League": "Football",
     "Women's Ekstraliga": "Football",
-    "Women's Super League": "Football"
+    "Women's Super League": "Football",
+    "World Championship Women Qual.": "Football",
+    "Ykkösliiga": "Football"
   },
   "league_aliases": {
     "SuperLiga României": "SuperLiga România"
   },
-  "team_aliases": {},
-  "api_team_aliases": {}
+  "team_aliases": {
+    "GIF Sundsvall": "OIF Sundsvall"
+  },
+  "api_team_aliases": {
+    "Turun Palloseura": "Turku PS",
+    "FF Jaro": "FF Jaro",
+    "L.R. Vicenza": "Vicenza Virtus",
+    "Pisa": "Pisa",
+    "Chengdu Rongcheng": "Chengdu Better City",
+    "Tianjin Jinmen Tiger": "Tianjin Teda"
+  }
 }
