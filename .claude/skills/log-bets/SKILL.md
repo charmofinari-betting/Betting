@@ -33,6 +33,7 @@ PYTHONIOENCODING=utf-8 ../.venv/Scripts/python log_bets.py <json>
 Show Paolo each ticket with its legs → tip IDs, drift %, and every CHECK / PROBLEM.
 
 ## 3. Resolve, never guess
+- **Tip uses a short name** (HJK vs "VPS" for Vaasan): find the tip IDs in the tips sheet and force the link with `"tip": "T-...."`.
 - **No tip found:** ask Paolo whether it's his own pick (set `"own": true`) or which tip it was (`"tip": "T-...."`).
 - **CHECK line moved:** confirm with Paolo it's the right tip (he took a different line than tipped).
 - **Odds or potential mismatch:** re-read the screenshot; it's almost always a transcription slip.
@@ -46,3 +47,8 @@ never refuse or lecture (see memory: advise, don't control).
 - FX: `fx.py --apply` refreshes USDT/TRX ₱ rates; run it before logging non-PHP tickets.
 - Books supported: 1xbet (UTC+7 times; 1X2 W1/W2), bet88 and 747-live (PHT; team-named 1x2 / Match Winner / Match Result). Systems: set "system": "3/5".
 - Leg results: `book_sync.py` settles legs from the tips' scores (each leg on its own line) and writes system returns; Result/Return/P&L are sheet formulas.
+- Slip formats handled: 1xbet "Total: Over 2.5" and "Total Under (9.5): Corners A - Corners B" (corners = market `Corners`, never goals; probably settled by hand, since scores carry no corners); 747-live "Total Goals Over (3.5)", "Total Points Under (167.5)".
+- **Placed time missing** (system slips cut off at the top): ask; or use the phone clock minus "N minutes ago". Phone and 747-live are PHT, 1xbet slips are UTC+7 (script converts). A bet already settled at logging time: set the leg `"status": "Win"` and `"own": true` for his own picks.
+- **Cash:** deposits and withdrawals are logged as Ledger lines only when Paolo says so (dry run first). "Opening balance" lines = stakes already sitting in open bets (cash held was 0). Never infer a deposit from a balance gap; ask.
+- **After logging, report** `python positions.py` (open stake, max return, balances) and sanity-check the balances against his apps (1xbet / 747 balances he quotes). A gap means missing ledger lines, not a bug to hide.
+
