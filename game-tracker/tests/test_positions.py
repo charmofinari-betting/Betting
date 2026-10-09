@@ -24,6 +24,13 @@ class PositionsTest(unittest.TestCase):
         self.assertEqual(rows[1][4], 2600.0)     # 100 x (2*3 + 2*4 + 3*4)
         self.assertEqual((stake, ret), (1300.0, 12600.0))
 
+    def test_lost_leg_cuts_the_ceiling(self):
+        dead = ["S-9", "2", "", "", "", "", "2.0", "", "", "Lost", "", "0"]
+        bets = [bet("S-9", "System 2/3", "300")]
+        legs = [leg("S-9", "2.0"), dead, leg("S-9", "4.0")]
+        rows, stake, ret = summarise(bets, legs)
+        self.assertEqual(rows[0][4], 300 / 3 * 2.0 * 4.0)  # only the pair without the dead leg pays
+
     def test_fx_applied(self):
         rows, stake, ret = summarise([bet("S-6", "Double", "100", fx="63.03")], [leg("S-6", "2.0"), leg("S-6", "2.0")])
         self.assertEqual((stake, ret), (6303.0, 25212.0))

@@ -2,7 +2,7 @@
 
   PYTHONIOENCODING=utf-8 ../.venv/Scripts/python positions.py
 
-Max return = every leg of every open ticket wins (systems: every k-combination pays, so a ceiling,
+Max return = every still-open leg of every open ticket wins (systems: every k-combination pays, so a ceiling,
 not an expectation). Non-PHP tickets convert at the FX stored on the ticket."""
 from math import prod
 
@@ -20,7 +20,8 @@ def summarise(bets, legs):
         if r[7] != "Open":
             continue
         sid, kind, stake, fx = r[0], r[3], num(r[4]), num(r[16]) or 1.0
-        odds = [num(l[6]) for l in legs if l[0] == sid]
+        # settled legs count at their result factor (lost 0, void 1), so a dead leg cuts the ceiling
+        odds = [num(l[11]) if len(l) > 11 and l[11] != "" else num(l[6]) for l in legs if l[0] == sid]
         if kind.startswith("System"):
             top = system_return(odds, int(kind.split()[1].split("/")[0]), stake)
         else:
