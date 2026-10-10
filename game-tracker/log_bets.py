@@ -66,6 +66,7 @@ def parse_slip_market(text, sport, home=None, away=None):
                          "Home" if m[1].lower() == "1x" else "Away", 0.5)
     x = re.sub(r"^total:\s*", "total ", x, flags=re.I)  # 1xbet variant "Total: Over 2.5"
     x = re.sub(r"^handicap:\s*", "handicap ", x, flags=re.I)  # 1xbet variant "Handicap: 1 (-11.5)"
+    x = re.sub(r"^team wins:\s*team ([12]) wins", lambda m: f"1x2: W{m[1]}", x, flags=re.I)  # "Team Wins: Team 1 Wins"
     x = re.sub(r"^team wins:\s*", "1x2: ", x, flags=re.I)  # 1xbet variant "Team Wins: W1" (no draw)
     x = re.sub(r":.*$", "", x) if not x.lower().startswith("1x2:") else x  # drop ": Team A - Team B" tails
     low = x.lower()

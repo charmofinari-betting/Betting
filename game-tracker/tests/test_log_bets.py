@@ -23,6 +23,8 @@ class SlipMarketTest(unittest.TestCase):
             ("Double Chance: 1X: A - B", "Football", Selection("Handicap", "FT", "Home", 0.5)),
             ("Handicap: 1 (-11.5)", "Basketball", Selection("Handicap", "FT", "Home", -11.5)),
             ("Team Wins: W1", "Basketball", Selection("Moneyline", "FT", "Home")),
+            ("Team Wins: Team 1 Wins", "Basketball", Selection("Moneyline", "FT", "Home")),
+            ("Team Wins: Team 2 Wins", "Basketball", Selection("Moneyline", "FT", "Away")),
             ("Total: Over 2.5", "Football", Selection("Total", "FT", "Over", 2.5)),
             ("Total: Under 2.5", "Football", Selection("Total", "FT", "Under", 2.5)),
             ("Both Teams To Score - Yes: A - B", "Football", Selection("BTTS", "FT", "Yes")),
