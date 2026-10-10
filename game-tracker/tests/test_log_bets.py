@@ -19,6 +19,8 @@ class SlipMarketTest(unittest.TestCase):
             ("Individual Total 1 Over (1.5): A - B", "Football", Selection("Home team total", "FT", "Over", 1.5)),
             ("Total Under (9.5): Corners Kashima Antlers - Corners Gamba Osaka", "Football", Selection("Corners", "FT", "Under", 9.5)),
             ("Corners: Total Under (9.5)", "Football", Selection("Corners", "FT", "Under", 9.5)),
+            ("Double Chance: 2X: Oldham Athletic - Accrington Stanley", "Football", Selection("Handicap", "FT", "Away", 0.5)),
+            ("Double Chance: 1X: A - B", "Football", Selection("Handicap", "FT", "Home", 0.5)),
             ("Handicap: 1 (-11.5)", "Basketball", Selection("Handicap", "FT", "Home", -11.5)),
             ("Team Wins: W1", "Basketball", Selection("Moneyline", "FT", "Home")),
             ("Total: Over 2.5", "Football", Selection("Total", "FT", "Over", 2.5)),
@@ -30,7 +32,7 @@ class SlipMarketTest(unittest.TestCase):
                 self.assertEqual(parse_slip_market(text, sport), want)
 
     def test_unknown_and_draw_raise(self):
-        for text in ("1X2: X: A - B", "Double Chance 1X: A - B", "Correct Score 2-1"):
+        for text in ("1X2: X: A - B", "Double Chance 12: A - B", "Correct Score 2-1"):
             with self.subTest(text=text), self.assertRaises(SlipParseError):
                 parse_slip_market(text, "Football")
 
