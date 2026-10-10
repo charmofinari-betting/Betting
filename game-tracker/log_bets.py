@@ -9,6 +9,7 @@ slips.json: a list of tickets, transcribed exactly from the book's slip screen:
              "market": "Handicap 1 (-8.5)", "odds": 1.83, "kickoff": "2026-10-08 00:00",
              "status": "Win", "own": false, "tip": null}]}
 - placed / kickoff: as the book shows them (book-local time; converted with BOOK_UTC_OFFSET).
+- "boost": 1.15 for a combo-boost multiplier on the slip (total odds = leg product × boost).
 - "opening": true for tickets already placed when the book started (8 Oct 2026): adds an
   "Opening balance" ledger line equal to the stake, because the book's cash already excludes it.
 - "own": true after Paolo confirms a leg is his own pick (no tip). "tip": "T-0123" forces a link.
@@ -66,7 +67,7 @@ def parse_slip_market(text, sport, home=None, away=None):
     low = x.lower()
     half = "1H" if re.search(r"1st half|first half|\b1h\b", low) else "FT"
     # bet88 style: the team is named instead of 1/2
-    m = re.match(r"^(?:1x2|match winner|match result) (.+)$", x, flags=re.I)
+    m = re.match(r"^(?:1x2|match winner|match result|winner) (.+)$", x, flags=re.I)  # bet88 tennis: "Winner Joint, Maya"
     if m and not low.startswith("1x2:"):
         if m[1].strip().lower() in ("draw", "x"):
             raise SlipParseError(f"draw bet {text!r}: no tip market for it")
@@ -243,8 +244,8 @@ def plan(slips, tips, existing_slip_nos, next_n, fx, accounts):
             if s.get("potential") and abs(max_win / s["potential"] - 1) > 0.002:
                 out.problems.append(f"{sid}: all legs winning pays {max_win:,.2f}, slip says {s['potential']}: check the odds")
         else:
-            if abs(acc_odds / s["total_odds"] - 1) > 0.005:
-                out.problems.append(f"{sid}: legs multiply to {acc_odds:.3f}, slip says {s['total_odds']}: check the transcription")
+            if abs(acc_odds * s.get("boost", 1) / s["total_odds"] - 1) > 0.005:
+                out.problems.append(f"{sid}: legs multiply to {acc_odds * s.get('boost', 1):.3f}, slip says {s['total_odds']}: check the transcription")
             if s.get("potential") and abs(s["stake"] * s["total_odds"] / s["potential"] - 1) > 0.002:
                 out.problems.append(f"{sid}: stake × odds = {s['stake'] * s['total_odds']:.2f}, slip says {s['potential']}")
         rate = fx.get(cur)
