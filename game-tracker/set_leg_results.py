@@ -2,7 +2,7 @@
 
 Usage: python set_leg_results.py S-0033:2=Lost S-0034:6=Lost [--apply]
 Each argument is SLIP:LEG=Result with Result one of Won, Lost, Half Won, Half Lost, Void.
-Legs that already have a result are refused. System returns are written by book_sync.py afterwards."""
+Legs that already have a result are refused unless you pass --overwrite (for corrections, e.g. a bet the book voided). System returns are written by book_sync.py afterwards."""
 import sys
 
 from formulas import RESULTS
@@ -36,9 +36,9 @@ def main():
         if not hit:
             sys.exit(f"{slip} leg {leg}: not found")
         r = rows[hit[0] - 1]
-        if r[9]:
-            sys.exit(f"{slip} leg {leg} already has a result ({r[9]}); refusing to overwrite")
-        print(f"  {slip} leg {leg}: {r[4]} | {r[5]} -> {result}")
+        if r[9] and "--overwrite" not in sys.argv:
+            sys.exit(f"{slip} leg {leg} already has a result ({r[9]}); refusing to overwrite (use --overwrite to correct it)")
+        print(f"  {slip} leg {leg}: {r[4]} | {r[5]} -> {result}" + (f"  (was {r[9]})" if r[9] else ""))
         todo.append((hit[0], result))
     if apply:
         for row, result in todo:
