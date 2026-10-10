@@ -25,7 +25,9 @@ def summarise(bets, legs):
         if kind.startswith("System"):
             top = system_return(odds, int(kind.split()[1].split("/")[0]), stake)
         else:
-            top = stake * prod(odds)
+            raw = prod(num(l[6]) for l in legs if l[0] == sid)
+            boost = num(r[5]) / raw if raw and num(r[5]) else 1.0  # combo boost: slip odds above the leg product
+            top = stake * prod(odds) * (boost if boost > 1.001 else 1.0)
         rows.append((sid, r[2], kind, stake, round(top, 2)))
         stake_t += stake * fx
         ret_t += top * fx

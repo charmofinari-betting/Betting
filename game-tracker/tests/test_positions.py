@@ -31,6 +31,12 @@ class PositionsTest(unittest.TestCase):
         rows, stake, ret = summarise(bets, legs)
         self.assertEqual(rows[0][4], 300 / 3 * 2.0 * 4.0)  # only the pair without the dead leg pays
 
+    def test_combo_boost_counts(self):
+        b = bet("S-8", "Double", "1000")
+        b[5] = "5.5"                     # slip odds 5.5 vs legs 2.0 x 2.5 = 5.0 -> boost 1.1
+        rows, stake, ret = summarise([b], [leg("S-8", "2.0"), leg("S-8", "2.5")])
+        self.assertEqual(rows[0][4], 5500.0)
+
     def test_fx_applied(self):
         rows, stake, ret = summarise([bet("S-6", "Double", "100", fx="63.03")], [leg("S-6", "2.0"), leg("S-6", "2.0")])
         self.assertEqual((stake, ret), (6303.0, 25212.0))
