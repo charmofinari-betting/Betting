@@ -30,7 +30,7 @@ from parse import Selection
 from setup_book import BOOK_KEY
 
 SHEETS_EPOCH = datetime(1899, 12, 30)
-BOOK_UTC_OFFSET = {"1xbet": 7, "bet88": 8, "747-live": 8}  # 1xbet shows UTC+7 on Paolo's account; others PHT
+BOOK_UTC_OFFSET = {"1xbet": 7, "bet88": 8, "747-live": 8, "msw.ph": 8}  # 1xbet shows UTC+7 on Paolo's account; others PHT
 PHT_OFFSET = 8
 BOOK_START = datetime(2026, 10, 8)
 SLIP_STATUS = {"win": "Won", "won": "Won", "loss": "Lost", "lost": "Lost", "return": "Void", "refund": "Void",
@@ -53,7 +53,8 @@ def parse_slip_market(text, sport, home=None, away=None):
     """A book's market text -> Selection (same fields as the tips).
     1xbet: "1X2: W2: A - B", "Handicap 1 (-8.5): ...", "Total Over (2.5): ...".
     bet88: "1x2 KS Lechia Gdansk", "Handicap (incl. overtime) BC Aris (-8.5)", "Total over 2.5".
-    747-live: "Match Winner Fajing Sun", "Total Points Over (168.5)"."""
+    747-live: "Match Winner Fajing Sun", "Total Points Over (168.5)".
+    msw.ph: "Win/Draw/Win - Regular Time: Team", "Head to Head - Match: Team", "Both Teams To Score - Regular Time: Yes"."""
     x = re.sub(r"\s*\((including|incl\.) overtime\)\s*", " ", text, flags=re.I).strip()
     m = re.match(r"^total (over|under) \(?(\d+(?:\.\d+)?)\)?:\s*corners", x, flags=re.I)
     if not m:  # 747-live: "Corners: Total Under (9.5)"
@@ -67,6 +68,10 @@ def parse_slip_market(text, sport, home=None, away=None):
     x = re.sub(r"^total:\s*", "total ", x, flags=re.I)  # 1xbet variant "Total: Over 2.5"
     x = re.sub(r"^handicap:\s*", "handicap ", x, flags=re.I)  # 1xbet variant "Handicap: 1 (-11.5)"
     x = re.sub(r"^team wins:\s*team ([12]) wins", lambda m: f"1x2: W{m[1]}", x, flags=re.I)  # "Team Wins: Team 1 Wins"
+    # msw.ph: "Win/Draw/Win - Regular Time: <team>", "Head to Head - Match: <team>", "Both Teams To Score - Regular Time: Yes"
+    x = re.sub(r"^win/draw/win\s*-\s*regular time:?\s*", "1x2 ", x, flags=re.I)
+    x = re.sub(r"^head to head\s*-\s*match:?\s*", "winner ", x, flags=re.I)
+    x = re.sub(r"^both teams to score\s*-\s*regular time:?\s*", "both teams to score ", x, flags=re.I)
     x = re.sub(r"^team wins:\s*", "1x2: ", x, flags=re.I)  # 1xbet variant "Team Wins: W1" (no draw)
     x = re.sub(r":.*$", "", x) if not x.lower().startswith("1x2:") else x  # drop ": Team A - Team B" tails
     low = x.lower()
@@ -257,7 +262,7 @@ def plan(slips, tips, existing_slip_nos, next_n, fx, accounts):
         if rate in (None, ""):
             out.problems.append(f"{sid}: no FX rate for {cur}")
         out.bets.append([sid, serial(placed), acct, ttype, s["stake"], None if system else s["total_odds"],
-                         "Paolo", "Paolo", s.get("notes", ""), rate, no])
+                         "Paolo", s.get("placed_by", "Paolo"), s.get("notes", ""), rate, no])  # Pot is always his money
         if s.get("opening"):
             out.ledger.append([serial(BOOK_START), acct, "Opening balance", s["stake"], "Paolo",
                                f"stake of {sid} (slip № {no}), open when the book started"])

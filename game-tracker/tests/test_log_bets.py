@@ -85,6 +85,10 @@ class PlanTest(unittest.TestCase):
         self.assertEqual(p.legs[1][8], "Won")
         self.assertEqual(p.ledger[0][2:4], ["Opening balance", 1000])
 
+    def test_placed_by_holder_keeps_pot_paolo(self):
+        p = plan([dict(SLIP, placed_by="Tish")], TIPS, {}, 1, {"PHP": 1.0}, ACCOUNTS)
+        self.assertEqual(p.bets[0][6:8], ["Paolo", "Tish"])
+
     def test_duplicate_slip_skipped(self):
         p = plan([SLIP], TIPS, {"1": "S-0007"}, 8, {"PHP": 1.0}, ACCOUNTS)
         self.assertEqual(p.bets, [])
@@ -110,6 +114,14 @@ if __name__ == "__main__":
 
 
 class Bet88AndSystemTest(unittest.TestCase):
+    def test_mswph_markets(self):
+        from log_bets import parse_slip_market as p
+        self.assertEqual(p("Win/Draw/Win - Regular Time: NK Varazdin", "Football", "NK Lokomotiva Zagreb", "NK Varazdin"),
+                         Selection("Handicap", "FT", "Away", -0.5))
+        self.assertEqual(p("Head to Head - Match: Turk Telekom", "Basketball", "Turk Telekom", "Besiktas Sompo Japan"),
+                         Selection("Moneyline", "FT", "Home"))
+        self.assertEqual(p("Both Teams To Score - Regular Time: Yes", "Football", "A", "B"), Selection("BTTS", "FT", "Yes"))
+
     def test_bet88_markets(self):
         from log_bets import parse_slip_market as p
         self.assertEqual(p("1x2 KS Lechia Gdansk", "Football", "ZKS Stal Rzeszow", "KS Lechia Gdansk"),
