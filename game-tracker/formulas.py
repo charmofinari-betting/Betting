@@ -10,7 +10,7 @@ Dashboard keep working; only its formulas change.
 """
 from parse import MARKETS, PERIODS, SIDES
 
-MARKETS_NEW = ("Home team cards", "Away team cards", "Cards handicap")
+MARKETS_NEW = ("Home team cards", "Away team cards", "Cards handicap", "Set handicap")
 RESULTS = ("Won", "Lost", "Half Won", "Half Lost", "Void")
 
 # Row guard: a Sheet1 row exists when it has an ID.
@@ -59,8 +59,8 @@ mk)))))))))''',
     # Side, Position (match | side). Side keeps the old grouping: team-total Overs
     # count as that team's side, Unders as Under; Cards (all card markets) and Corners are their own side.
     "N2": f'''=ARRAYFORMULA(LET(mk,Sheet1!I3:I,sd,Sheet1!K3:K,s,
-IF(REGEXMATCH(mk,"(?i)cards"),"Cards",IF(mk="Corners","Corners",IF(mk="BTTS","BTTS "&sd,
-IF(REGEXMATCH(mk,"team total$"),IF(sd="Under","Under",LEFT(mk,4)),sd)))),
+IF(REGEXMATCH(mk,"(?i)cards"),"Cards",IF(mk="Set handicap","Set handicap",IF(mk="Corners","Corners",IF(mk="BTTS","BTTS "&sd,
+IF(REGEXMATCH(mk,"team total$"),IF(sd="Under","Under",LEFT(mk,4)),sd))))),
 HSTACK(IF({_G},,s),IF({_G},,Sheet1!F3:F&" | "&s))))''',
     # Odds band
     "P2": f'''=ARRAYFORMULA(LET(o,Sheet1!N3:N,IF({_G},,IF(o<1.7,"1) under 1.70",IF(o<2,"2) 1.70-1.99",
