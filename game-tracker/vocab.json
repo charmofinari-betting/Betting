@@ -22,6 +22,7 @@
     "2nd Division, Group 2": "Football",
     "3. Liga": "Football",
     "ASEAN Cup": "Football",
+    "AdmiralBet ABA League": "Basketball",
     "Algerian Ligue 1": "Football",
     "Austrian Bundesliga": "Football",
     "BNXT League": "Basketball",
@@ -46,6 +47,7 @@
     "Copa Chile": "Football",
     "Cymru Premier": "Football",
     "Cyprus League by Stoiximan": "Football",
+    "Czech First League": "Football",
     "Damallsvenskan": "Football",
     "Danish Superliga": "Football",
     "División Intermedia": "Football",
@@ -109,12 +111,14 @@
     "Norwegian 1st Division": "Football",
     "Orlen Basket Liga": "Basketball",
     "PGE Basket Liga": "Basketball",
+    "Parva Liga": "Football",
     "Pirma Lyga": "Football",
     "Polish Basketball Supercup": "Basketball",
     "Premier Division": "Football",
     "Premier League": "Football",
     "Premium Liiga": "Football",
     "Primera A": "Football",
+    "Primera B Metropolitana": "Football",
     "Primera División, Apertura": "Football",
     "Primera Federación": "Football",
     "Primera Nacional": "Football",
@@ -161,6 +165,7 @@
     "Women's Ekstraliga": "Football",
     "Women's Super League": "Football",
     "World Championship Women Qual.": "Football",
+    "Ykkönen": "Football",
     "Ykkösliiga": "Football"
   },
   "league_aliases": {
@@ -199,6 +204,8 @@
     "POT Iraklis": "Iraklis 1908",
     "APO Levadiakos": "Levadiakos",
     "KV Mechelen": "KV Mechelen",
-    "Sint-Truidense VV": "St. Truiden"
+    "Sint-Truidense VV": "St. Truiden",
+    "Hapoel Rishon Lezion": "Hapoel Rishon LeZion",
+    "Maccabi Yafo Kabilyo": "Maccabi Kabilio Jaffa"
   }
 }
