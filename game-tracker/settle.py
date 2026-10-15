@@ -49,6 +49,11 @@ def settle(sel: Selection, sport: str, ft, ht=None):
         if ht is None or None in ht:
             return None
     h, a = ft
+    if sel.market == "HT/FT":  # leads at half-time and wins the match (same team both times)
+        if ht is None or None in ht:
+            return None
+        mine, theirs = (0, 1) if sel.side == "Home" else (1, 0)
+        return "Won" if ht[mine] > ht[theirs] and ft[mine] > ft[theirs] else "Lost"
     second = (h - ht[0], a - ht[1]) if ht and None not in ht else None
     if sel.period == "2H" and second is None:
         return None

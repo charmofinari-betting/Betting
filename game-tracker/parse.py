@@ -9,7 +9,7 @@ from dataclasses import dataclass
 
 MARKETS = (
     "Handicap", "Total", "Home team total", "Away team total", "Moneyline", "BTTS",
-    "Corners", "Cards", "Home team cards", "Away team cards", "Cards handicap", "Set handicap", "Win either half", "Win both halves", "Score in both halves",
+    "Corners", "Cards", "Home team cards", "Away team cards", "Cards handicap", "Set handicap", "HT/FT", "Win either half", "Win both halves", "Score in both halves",
     "Both halves over",
 )
 PERIODS = ("FT", "1H", "2H")
@@ -51,6 +51,8 @@ _RULES = [
      lambda m, half: Selection("Cards handicap", "FT", m[1].title(), float(m[2]))),
     (rf"^SET HANDICAP {NUM} (HOME|AWAY)$",
      lambda m, half: Selection("Set handicap", "FT", m[2].title(), float(m[1]))),
+    (r"^HTFT (HOME)/(HOME)$|^HTFT (AWAY)/(AWAY)$",
+     lambda m, half: Selection("HT/FT", "FT", (m[1] or m[3]).title())),
     (r"^(HOME|AWAY) TEAM TO WIN EITHER HALF$",
      lambda m, half: Selection("Win either half", "FT", m[1].title())),
     (r"^(HOME|AWAY) TEAM TO WIN BOTH HALVES$",

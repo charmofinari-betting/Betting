@@ -66,6 +66,12 @@ class OtherMarketsTest(unittest.TestCase):
             with self.subTest(text=text, ft=ft, ht=ht):
                 self.assertEqual(S(text, ft, ht), want)
 
+    def test_htft(self):
+        self.assertEqual(S("HTFT HOME/HOME", (2, 1), (1, 0)), "Won")
+        self.assertEqual(S("HTFT HOME/HOME", (2, 1), (0, 1)), "Lost")
+        self.assertEqual(S("HTFT AWAY/AWAY", (0, 2), (0, 1)), "Won")
+        self.assertIsNone(S("HTFT HOME/HOME", (2, 1)))
+
     def test_needs_paolo(self):
         self.assertIsNone(S("CORNERS UNDER 9.5", (1, 0), (0, 0)))
         self.assertIsNone(S("CARDS UNDER 4.5", (1, 0), (0, 0)))
