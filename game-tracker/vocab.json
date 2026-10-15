@@ -30,6 +30,7 @@
     "Austrian Bundesliga": "Football",
     "BNXT League": "Basketball",
     "Bahraini Premier League": "Football",
+    "Belgian Cup": "Football",
     "Besta deild karla": "Football",
     "Betclic 1. Liga": "Football",
     "Betclic 2. Liga": "Football",
@@ -130,6 +131,7 @@
     "Primera Federación": "Football",
     "Primera Nacional": "Football",
     "Pro League": "Football",
+    "PrvaLiga": "Football",
     "Regionalliga Nord": "Football",
     "Regionalliga West": "Football",
     "Saudi Pro League": "Football",
@@ -161,6 +163,7 @@
     "Trendyol Süper Lig": "Football",
     "Turkish Basketball Super League": "Basketball",
     "UEFA Conference League": "Football",
+    "UEFA Europa League": "Football",
     "UEFA Nations League": "Football",
     "UEFA Women's Champions League": "Football",
     "USL Championship": "Football",
@@ -218,6 +221,10 @@
     "Hapoel Rishon Lezion": "Hapoel Rishon LeZion",
     "Maccabi Yafo Kabilyo": "Maccabi Kabilio Jaffa",
     "Red Bull Bragantino": "RB Bragantino",
-    "Cruzeiro": "Cruzeiro"
+    "Cruzeiro": "Cruzeiro",
+    "Stabæk Fotball": "Stabaek",
+    "Sandnes Ulf": "Sandnes ULF",
+    "GC Mascara": "GC Mascara",
+    "IRB Sidi M'Hamed Ben ali": "Sidi Benali"
   }
 }
