@@ -75,7 +75,11 @@ def parse_slip_market(text, sport, home=None, away=None):
     x = re.sub(r"^win/draw/win\s*-\s*regular time:?\s*", "1x2 ", x, flags=re.I)
     x = re.sub(r"^head to head\s*-\s*match:?\s*", "winner ", x, flags=re.I)
     x = re.sub(r"^both teams to score\s*-\s*regular time:?\s*", "both teams to score ", x, flags=re.I)
-    x = re.sub(r"^team wins:\s*", "1x2: ", x, flags=re.I)  # 1xbet variant "Team Wins: W1" (no draw)
+    m = re.match(r"^over/under\s*-\s*regular time:?\s*(over|under) (\d+(?:\.\d+)?)(?:,(\d+(?:\.\d+)?))?$", x, flags=re.I)
+    if m:  # msw.ph "Over/Under - Regular Time: Under 2.5,3" = split (quarter) line 2.75
+        line = (float(m[2]) + float(m[3])) / 2 if m[3] else float(m[2])
+        return Selection("Total", "FT", m[1].title(), line)
+    x = re.sub(r"^team wins:\s*","1x2: ", x, flags=re.I)  # 1xbet variant "Team Wins: W1" (no draw)
     x = re.sub(r":.*$", "", x) if not x.lower().startswith("1x2:") else x  # drop ": Team A - Team B" tails
     low = x.lower()
     half = "1H" if re.search(r"1st half|first half|\b1h\b", low) else "FT"
