@@ -14,7 +14,7 @@ import time
 from datetime import datetime, timedelta
 from pathlib import Path
 
-from fixtures import PHT, SHEETS_EPOCH, DateNotAvailable, fetch, games, match
+from fixtures import CACHE, PHT, SHEETS_EPOCH, DateNotAvailable, fetch, games, match
 from log_picks import SHEETS, VOCAB
 from parse import Selection
 from settle import settle
@@ -32,6 +32,16 @@ def window(today):
     return [(today + timedelta(days=d)).isoformat() for d in (-1, 0, 1)]
 
 
+def cached_days(sport):
+    """Dates with a saved API file for this sport (pulled from Drive or fetched before)."""
+    return {p.stem for p in (CACHE / sport.lower()).glob("*.json")}
+
+
+def in_reach(sport, d, days, saved):
+    """Settleable from data: inside the free-plan window, or a day the Drive job saved."""
+    return d in days or d in saved.get(sport, set())
+
+
 def day_of(serial):
     return (SHEETS_EPOCH + timedelta(days=serial)).date().isoformat()
 
@@ -45,6 +55,7 @@ def gap_warning(today):
         return None
     last = datetime.fromisoformat(json.loads(LAST_RUN.read_text())["date"]).date()
     lost = [(last + timedelta(days=d)).isoformat() for d in range(0, (today - last).days - 1)]
+    lost = [d for d in lost if not (CACHE / "football" / f"{d}.json").exists()]
     if lost:
         return (f"last sync was {last.isoformat()}: results for {', '.join(lost)} are outside the free "
                 f"plan's window now; settle those by hand")
@@ -59,6 +70,12 @@ def main():
     key = SHEETS["staging" if "--staging" in sys.argv else "live"]
     today = datetime.now(PHT).date()
     days = window(today)
+    try:
+        from inbox import pull_results
+        pulled, status = pull_results()
+    except Exception as e:  # offline or Drive refused: carry on with the local cache
+        pulled, status = [], f"Drive results pull failed ({e}); using the local cache"
+    saved = {s: cached_days(s) for s in API_SPORTS}
     vocab = json.loads(VOCAB.read_text(encoding="utf-8"))
     aliases = vocab.setdefault("api_team_aliases", {})
 
@@ -67,6 +84,7 @@ def main():
     ws = sh.worksheet("Sheet1")
     rows = ws.get_all_values()
     print(f"[{sh.title}] {'APPLY' if apply else 'dry run'} | window {days[0]} .. {days[-1]} (PHT)")
+    print(f"  Drive results: {len(pulled)} file(s) pulled; {status}")
     warn = gap_warning(today)
     if warn:
         print(f"  WARNING {warn}")
@@ -87,7 +105,7 @@ def main():
             continue
         if r[COL["fixture"]]:
             ko = datetime.strptime(r[COL["kickoff"]], "%d %B %Y %H:%M")
-            if ko.date().isoformat() in days:
+            if in_reach(r[COL["sport"]], ko.date().isoformat(), days, saved):
                 to_settle.setdefault((r[COL["sport"]], ko.date().isoformat(), r[COL["fixture"]]), []).append((i, r))
             elif ko.date().isoformat() < days[0]:
                 too_late.append(r)
@@ -101,7 +119,8 @@ def main():
         ko_day = None
         if ko:
             ko_day = datetime.strptime(ko, "%d %B %Y %H:%M").date().isoformat()
-        needed |= {(sport, d) for d in ([ko_day] if ko_day in days else days if not ko_day else [])}
+        reach = ko_day and in_reach(sport, ko_day, days, saved)
+        needed |= {(sport, d) for d in ([ko_day] if reach else days if not ko_day else [])}
     pool, spent, skipped = [], 0, []
     for sport, d in sorted(needed):
         cached = (HERE / "data" / "api" / sport.lower() / f"{d}.json")
@@ -123,7 +142,7 @@ def main():
         ko_serial = None
         if ko_known:
             ko_serial = (datetime.strptime(ko_known, "%d %B %Y %H:%M") - SHEETS_EPOCH).total_seconds() / 86400
-            if day_of(ko_serial) not in days:
+            if not in_reach(sport, day_of(ko_serial), days, saved):
                 continue  # outside the window: try again on a later day
         g, conf = match(sport, home, away, pool, ko_serial, aliases)
         ids = ", ".join(r[COL["id"]] for _, r in group)
@@ -147,7 +166,7 @@ def main():
             checks.append(group[0][1][COL["id"]])
             print(f"  CHECK  {ids}: {home} vs {away} -> {g.home} vs {g.away} [{g.league}, {g.country}] "
                   f"{ko_text(g.kickoff)}?")
-        elif not ko_known or day_of(ko_serial) in days:
+        elif not ko_known or in_reach(sport, day_of(ko_serial), days, saved):
             missing.append(f"{ids}: {home} vs {away}")
     if missing:
         print(f"  not found in the window ({len(missing)}): kickoff probably later, or not covered")

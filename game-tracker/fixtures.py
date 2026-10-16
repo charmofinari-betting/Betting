@@ -64,12 +64,15 @@ def fetch(sport, date, now=None, session=requests):
     """Raw API JSON for one sport and date (YYYY-MM-DD, PHT), from cache when fresh."""
     path = CACHE / sport.lower() / f"{date}.json"
     now = now or time.time()
-    if path.exists() and now - path.stat().st_mtime < FRESH_FOR:
-        return json.loads(path.read_text(encoding="utf-8"))
+    yesterday = (datetime.fromtimestamp(now, PHT) - timedelta(days=1)).date().isoformat()
+    if path.exists() and (now - path.stat().st_mtime < FRESH_FOR or date < yesterday):
+        return json.loads(path.read_text(encoding="utf-8"))  # older days can't change any more
     key = KEY_FILE.read_text(encoding="utf-8-sig").strip()
     data = session.get(ENDPOINTS[sport].format(date=date), headers={"x-apisports-key": key}, timeout=30).json()
     if data.get("errors"):
         if "plan" in data["errors"]:
+            if path.exists():  # outside the window now, but a saved copy exists (e.g. from Drive)
+                return json.loads(path.read_text(encoding="utf-8"))
             raise DateNotAvailable(f"api-sports {sport} {date}: {data['errors']['plan']}")
         raise RuntimeError(f"api-sports {sport} {date}: {data['errors']}")
     path.parent.mkdir(parents=True, exist_ok=True)
