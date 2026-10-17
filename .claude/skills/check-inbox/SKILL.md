@@ -37,5 +37,6 @@ Files with open questions stay in the inbox for the next check. Finish with the 
 
 ## Notes
 - Folder ids are in `inbox.py`. The bot (`sheet-bot@betting-511008`) has Editor on Betting Inbox only.
-- Pat/Tish slips: same flow; `placed_by` comes from the account on the slip. Ask if unclear.
+- **Holder slips** sit in `Slips/<Holder>/` (Pat, Tish, Grace; each folder shared only with that person). The pull shows "(placed by Pat)": set `"placed_by"` to that name and use that holder's account (e.g. `msw.ph Pat`). If the book on the slip doesn't match the holder's account, ask.
+- A new holder: Paolo creates `Slips/<Name>` (name exactly as in the Accounts tab Holder column) and shares it with them as Editor. No code change needed.
 - Local copies in `out/inbox/` can be deleted any time; Drive `Done` keeps the originals.

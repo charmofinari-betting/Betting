@@ -4,7 +4,7 @@ from pathlib import Path
 import os
 import tempfile
 
-from inbox import check_done, local_name, plan_pull
+from inbox import FOLDER_MIME, check_done, local_name, plan_pull, tag
 from sync import in_reach
 
 F = {"id": "abc123", "name": "Screenshot_20261016.jpg", "mimeType": "image/jpeg",
@@ -40,6 +40,12 @@ class TestInbox(unittest.TestCase):
             self.assertEqual([f["id"] for f, _, _ in plan_pull(files, cache)], ["2"])
             files[0]["modifiedTime"] = "2026-10-13T06:00:00Z"  # Drive copy updated since
             self.assertEqual([p.name for _, p, _ in plan_pull(files, cache)], ["2026-10-12.json", "2026-10-13.json"])
+
+    def test_holder_subfolder_tags_placed_by_and_skips_folders(self):
+        files = [dict(F, folder=None), {"id": "sub", "name": "Pat", "mimeType": FOLDER_MIME, "createdTime": "x"}]
+        tagged = tag(files, "Slips/Pat", "pat-folder-id", "Pat")
+        self.assertEqual([(f["id"], f["placed_by"], f["parent"]) for f in tagged], [("abc123", "Pat", "pat-folder-id")])
+        self.assertEqual(local_name(tagged[0]), Path("Slips/Pat") / "20261016-094107_abc123.jpg")
 
     def test_in_reach_window_or_saved_day(self):
         days = ["2026-10-15", "2026-10-16", "2026-10-17"]

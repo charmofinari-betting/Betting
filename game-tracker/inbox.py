@@ -31,6 +31,7 @@ OUT = Path(__file__).resolve().parent / "out" / "inbox"
 API = "https://www.googleapis.com/drive/v3/files"
 READONLY = ["https://www.googleapis.com/auth/drive.readonly"]
 READWRITE = ["https://www.googleapis.com/auth/drive"]
+FOLDER_MIME = "application/vnd.google-apps.folder"
 EXT = {"image/jpeg": ".jpg", "image/png": ".png", "image/webp": ".webp", "image/heic": ".heic"}
 
 
@@ -41,15 +42,30 @@ def session(scopes=READONLY):
     return AuthorizedSession(Credentials.from_service_account_file(keys[0], scopes=scopes))
 
 
+def children(s, fid):
+    r = s.get(API, params={"q": f"'{fid}' in parents and trashed=false",
+                           "fields": "files(id,name,mimeType,createdTime)",
+                           "orderBy": "createdTime", "pageSize": 1000})
+    r.raise_for_status()
+    return r.json()["files"]
+
+
+def tag(files, folder, parent, placed_by="Paolo"):
+    """Inbox entries: files only (subfolders are walked separately), with where they sit."""
+    return [dict(f, folder=folder, parent=parent, placed_by=placed_by)
+            for f in files if f["mimeType"] != FOLDER_MIME]
+
+
 def list_new(s):
-    """Files waiting in Tips and Slips, oldest first, each tagged with its folder."""
+    """Files waiting in Tips and Slips, oldest first. Slips/<Holder>/ subfolders hold the
+    account holders' slips (Pat, Tish, Grace...): placed_by comes from the folder name."""
     out = []
     for folder, fid in FOLDERS.items():
-        r = s.get(API, params={"q": f"'{fid}' in parents and trashed=false",
-                               "fields": "files(id,name,mimeType,createdTime)",
-                               "orderBy": "createdTime", "pageSize": 1000})
-        r.raise_for_status()
-        out += [dict(f, folder=folder) for f in r.json()["files"]]
+        files = children(s, fid)
+        out += tag(files, folder, fid)
+        if folder == "Slips":
+            for sub in (f for f in files if f["mimeType"] == FOLDER_MIME):
+                out += tag(children(s, sub["id"]), f"Slips/{sub['name']}", sub["id"], sub["name"])
     return sorted(out, key=lambda f: f["createdTime"])
 
 
@@ -113,7 +129,8 @@ def show(files):
     if not files:
         print("Inbox empty.")
     for f in files:
-        print(f"{f['folder']:<6} {f['createdTime'][:16].replace('T', ' ')} UTC  {f['id']}  {f['name']}")
+        print(f"{f['folder']:<12} {f['createdTime'][:16].replace('T', ' ')} UTC  {f['id']}  {f['name']}"
+              + ("" if f["placed_by"] == "Paolo" else f"  (placed by {f['placed_by']})"))
 
 
 def main(argv):
@@ -147,7 +164,7 @@ def main(argv):
             print(f"{'MOVED' if apply else 'would move'} {f['folder']}/{f['name']} -> Done")
             if apply:
                 r = s.patch(f"{API}/{f['id']}", params={
-                    "addParents": DONE, "removeParents": FOLDERS[f["folder"]]})
+                    "addParents": DONE, "removeParents": f["parent"]})
                 r.raise_for_status()
         if move and not apply:
             print("Dry run. Re-run with --apply to move.")
