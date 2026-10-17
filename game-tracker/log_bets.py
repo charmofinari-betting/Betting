@@ -81,6 +81,10 @@ def parse_slip_market(text, sport, home=None, away=None):
     if m:  # msw.ph "Over/Under - Regular Time: Under 2.5,3" = split (quarter) line 2.75
         line = (float(m[2]) + float(m[3])) / 2 if m[3] else float(m[2])
         return Selection("Total", "FT", m[1].title(), line)
+    m = re.match(r"^asian handicap\s*-\s*(first half|match|regular time):?\s*(.+?)\s*\(([+-]?\d+(?:\.\d+)?)\)$", x, flags=re.I)
+    if m:  # msw.ph "Asian Handicap - First Half: Oita Trinita (0)"
+        return Selection("Handicap", "1H" if m[1].lower() == "first half" else "FT",
+                         _side_from_team(m[2], home, away, text), float(m[3]))
     x = re.sub(r"^team wins:\s*","1x2: ", x, flags=re.I)  # 1xbet variant "Team Wins: W1" (no draw)
     x = re.sub(r":.*$", "", x) if not x.lower().startswith("1x2:") else x  # drop ": Team A - Team B" tails
     low = x.lower()
