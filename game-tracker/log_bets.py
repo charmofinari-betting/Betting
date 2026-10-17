@@ -58,6 +58,9 @@ def parse_slip_market(text, sport, home=None, away=None):
     747-live: "Match Winner Fajing Sun", "Total Points Over (168.5)".
     msw.ph: "Win/Draw/Win - Regular Time: Team", "Head to Head - Match: Team", "Both Teams To Score - Regular Time: Yes"."""
     x = re.sub(r"\s*\((including|incl\.) overtime\)\s*", " ", text, flags=re.I).strip()
+    # 1xbet "1X2 (2UP): W2 (2UP): ..." = a 1X2 bet that also pays early if the team goes 2 up.
+    # Logged as the plain 1X2; an early payout the score can't show is settled by hand.
+    x = re.sub(r"\s*\(2up\)", "", x, flags=re.I)
     m = re.match(r"^total (over|under) \(?(\d+(?:\.\d+)?)\)?:\s*corners", x, flags=re.I)
     if not m:  # 747-live: "Corners: Total Under (9.5)"
         m = re.match(r"^(?:1st half |first half )?corners:? total (over|under) \(?(\d+(?:\.\d+)?)\)?$", x, flags=re.I)

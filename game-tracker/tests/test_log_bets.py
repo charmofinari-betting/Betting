@@ -10,6 +10,7 @@ class SlipMarketTest(unittest.TestCase):
         cases = [
             ("1X2: W2: Botosani - UTA Arad", "Football", Selection("Handicap", "FT", "Away", -0.5)),
             ("1X2: W1: Daniel Rincon - Pedro Martinez Portero", "Tennis", Selection("Moneyline", "FT", "Home")),
+            ("1X2 (2UP): W2 (2UP): Swansea City - West Ham United", "Football", Selection("Handicap", "FT", "Away", -0.5)),
             ("Handicap 1 (-8.5): Aris Thessaloniki - Burgos (Including Overtime)", "Basketball",
              Selection("Handicap", "FT", "Home", -8.5)),
             ("Asian Handicap 2 (+0.25): A - B", "Football", Selection("Handicap", "FT", "Away", 0.25)),
