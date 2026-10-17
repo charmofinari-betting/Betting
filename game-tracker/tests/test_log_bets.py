@@ -66,6 +66,13 @@ class FindTipTest(unittest.TestCase):
         t, note = find_tip(Selection("Handicap", "FT", "Away", -0.5), "Football", "Clube Nautico Capibaribe", "Novorizontino", KO, TIPS)
         self.assertEqual((t.id, note), ("T-0436", ""))
 
+    def test_team_alias_maps_book_name_to_sheet_name(self):
+        sel = Selection("Handicap", "FT", "Away", -0.5)
+        self.assertIsNone(find_tip(sel, "Football", "Nautico", "Novo", KO, TIPS, aliases={})[0])
+        t, _ = find_tip(sel, "Football", "Nautico", "Novo", KO, TIPS,
+                        aliases={"Nautico": "Clube Nautico Capibaribe", "Novo": "Novorizontino"})
+        self.assertEqual(t.id, "T-0436")
+
     def test_other_match_or_far_kickoff(self):
         self.assertIsNone(find_tip(Selection("Total", "FT", "Over", 169.5), "Basketball", "Real Madrid", "Virtus Bologna", KO, TIPS)[0])
         far = datetime(2026, 10, 20)

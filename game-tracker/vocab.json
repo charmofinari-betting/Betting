@@ -185,7 +185,11 @@
     "SuperLiga României": "SuperLiga România"
   },
   "team_aliases": {
-    "GIF Sundsvall": "OIF Sundsvall"
+    "GIF Sundsvall": "OIF Sundsvall",
+    "Ekenas": "EIF",
+    "Ekenas Idrottsforening": "EIF",
+    "KaPa": "KäPa",
+    "KaPa Kapylan Pallo": "KäPa"
   },
   "api_team_aliases": {
     "Turun Palloseura": "Turku PS",
@@ -237,6 +241,12 @@
     "West Bromwich Albion": "West Brom",
     "Blackburn Rovers": "Blackburn",
     "SK Beveren": "SK Beveren",
-    "RSC Habay": "Habay-la-Neuve"
+    "RSC Habay": "Habay-la-Neuve",
+    "Vélez Sarsfield": "Velez Sarsfield",
+    "Gimnasia y Esgrima Mendoza": "Gimnasia M.",
+    "Panathinaikos FC": "Panathinaikos",
+    "Asteras Aktor": "Asteras Tripolis",
+    "Pescara": "Pescara",
+    "Ostiamare": "Ostia Mare"
   }
 }

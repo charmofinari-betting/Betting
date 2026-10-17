@@ -173,8 +173,16 @@ def tip_rows(sheet1_values):
     return out
 
 
-def find_tip(leg_sel, sport, home, away, kickoff, tips):
+def team_aliases():
+    """vocab.json team_aliases: a book/screenshot spelling -> the tips sheet's spelling (e.g. Ekenas -> EIF)."""
+    from log_picks import VOCAB
+    return json.loads(VOCAB.read_text(encoding="utf-8")).get("team_aliases", {})
+
+
+def find_tip(leg_sel, sport, home, away, kickoff, tips, aliases=None):
     """(tip, note) for the best tip on the same match and market/side; note says if the line moved."""
+    aliases = team_aliases() if aliases is None else aliases
+    home, away = aliases.get(home, home), aliases.get(away, away)
     same_match = [t for t in tips if t.sport == sport
                   and min(name_score(home, t.home), name_score(away, t.away)) >= 0.8
                   # wide window: book dates can differ from the tip's (reschedules, tennis order of play);
