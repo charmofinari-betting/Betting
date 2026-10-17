@@ -1,7 +1,7 @@
 import unittest
 from datetime import datetime
 
-from log_bets import SlipParseError, TipRow, find_tip, parse_slip_market, plan, to_pht
+from log_bets import SlipParseError, TipRow, find_tip, parse_slip_market, plan, slip_offset, to_pht
 from parse import Selection
 
 
@@ -109,6 +109,44 @@ class PlanTest(unittest.TestCase):
         p = plan([own], TIPS, {}, 1, {"PHP": 1.0}, ACCOUNTS)
         self.assertEqual(p.problems, [])
         self.assertEqual(p.legs[2][3], "Yes")
+
+
+def _with_ko(*kos):
+    return dict(SLIP, legs=[dict(l, kickoff=k) for l, k in zip(SLIP["legs"], kos)])
+
+
+class SlipTimeZoneTest(unittest.TestCase):
+    """1xbet slips show UTC+7 or PHT; the tips' known PHT kickoffs (KO = 02:00) decide."""
+
+    def test_one_hour_earlier_means_utc7(self):
+        self.assertEqual(slip_offset("1xbet", _with_ko("2026-10-09 01:00", "2026-10-09 01:00"), TIPS)[0], 7)
+
+    def test_same_time_means_pht(self):
+        off, why = slip_offset("1xbet", _with_ko("2026-10-09 02:00", "2026-10-09 02:00"), TIPS)
+        self.assertEqual((off, why), (8, "2 kickoff(s) agree"))
+        p = plan([dict(_with_ko("2026-10-09 02:00", "2026-10-09 02:00"), placed="2026-10-07 18:34")],
+                 TIPS, {}, 1, {"PHP": 1.0}, ACCOUNTS)
+        self.assertEqual(p.problems, [])
+        self.assertAlmostEqual(p.bets[0][1] % 1, (18 * 60 + 34) / 1440)  # placed kept as shown, no shift
+
+    def test_disagreeing_kickoffs_ask(self):
+        off, why = slip_offset("1xbet", _with_ko("2026-10-09 01:00", "2026-10-09 02:00"), TIPS)
+        self.assertEqual((off, why), (None, "kickoffs disagree"))
+        p = plan([_with_ko("2026-10-09 01:00", "2026-10-09 02:00")], TIPS, {}, 1, {"PHP": 1.0}, ACCOUNTS)
+        self.assertTrue(any("time zone" in pr for pr in p.problems))
+
+    def test_no_known_kickoff_asks_and_override_wins(self):
+        own = dict(SLIP, legs=[dict(l, own=True, home="Unknown FC", away="Nobody") for l in SLIP["legs"]])
+        self.assertIsNone(slip_offset("1xbet", own, TIPS)[0])
+        self.assertEqual(slip_offset("1xbet", dict(own, tz=8), TIPS), (8, "set on the slip"))
+
+    def test_rescheduled_leg_ignored_when_others_agree(self):
+        off, why = slip_offset("1xbet", _with_ko("2026-10-09 01:00", "2026-10-09 05:00"), TIPS)
+        self.assertEqual(off, 7)
+        self.assertIn("ignored", why)
+
+    def test_other_books_unchanged(self):
+        self.assertEqual(slip_offset("bet88", SLIP, TIPS), (8, ""))
 
 
 if __name__ == "__main__":

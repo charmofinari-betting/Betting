@@ -30,7 +30,9 @@ from parse import Selection
 from setup_book import BOOK_KEY
 
 SHEETS_EPOCH = datetime(1899, 12, 30)
-BOOK_UTC_OFFSET = {"1xbet": 7, "bet88": 8, "747-live": 8, "msw.ph": 8}  # 1xbet shows UTC+7 on Paolo's account; others PHT
+BOOK_UTC_OFFSET = {"1xbet": 7, "bet88": 8, "747-live": 8, "msw.ph": 8}  # what each book's slips show
+# Books whose slips show either zone (1xbet flips between UTC+7 and PHT): detected per slip, see slip_offset.
+FLIP_OFFSETS = {"1xbet": (7, 8)}
 PHT_OFFSET = 8
 BOOK_START = datetime(2026, 10, 8)
 SLIP_STATUS = {"win": "Won", "won": "Won", "loss": "Lost", "lost": "Lost", "return": "Void", "refund": "Void",
@@ -128,9 +130,10 @@ def system_return(factors, k, total_stake):
     return round(sum(per * prod(c) for c in combos), 2)
 
 
-def to_pht(book_time, book):
+def to_pht(book_time, book, offset=None):
+    """Slip time -> PHT. offset = the slip's UTC offset if known, else the book's usual one."""
     t = datetime.strptime(book_time, "%Y-%m-%d %H:%M")
-    return t + timedelta(hours=PHT_OFFSET - BOOK_UTC_OFFSET.get(book, PHT_OFFSET))
+    return t + timedelta(hours=PHT_OFFSET - (offset if offset is not None else BOOK_UTC_OFFSET.get(book, PHT_OFFSET)))
 
 
 def serial(dt):
@@ -183,6 +186,43 @@ def find_tip(leg_sel, sport, home, away, kickoff, tips):
                               for t in same_match) if same_match else "match not in the tips")
 
 
+def slip_offset(book, slip, tips):
+    """(UTC offset of this slip's times, reason). Offset None = can't tell: ask Paolo, never guess.
+
+    For books that flip zones, each leg whose match has a known PHT kickoff (its tip's) votes:
+    slip kickoff equal to it -> PHT, one hour earlier -> UTC+7. "tz" on the slip overrides.
+    """
+    if slip.get("tz") is not None:
+        return int(slip["tz"]), "set on the slip"
+    if book not in FLIP_OFFSETS:
+        return BOOK_UTC_OFFSET.get(book, PHT_OFFSET), ""
+    votes, odd = [], []
+    for leg in slip["legs"]:
+        if not leg.get("kickoff"):
+            continue
+        raw = datetime.strptime(leg["kickoff"], "%Y-%m-%d %H:%M")
+        if leg.get("tip"):
+            tip = next((t for t in tips if t.id == leg["tip"]), None)
+        else:
+            try:
+                sel = parse_slip_market(leg["market"], leg["sport"], leg["home"], leg["away"])
+            except SlipParseError:
+                continue
+            tip, _ = find_tip(sel, leg["sport"], leg["home"], leg["away"], raw, tips)
+        if not tip or not tip.kickoff:
+            continue
+        gap = (tip.kickoff - raw).total_seconds() / 3600   # = PHT offset - slip offset
+        fit = [o for o in FLIP_OFFSETS[book] if abs(gap - (PHT_OFFSET - o)) <= 10 / 60]
+        (votes if fit else odd).append(fit[0] if fit else f"{leg['home']} vs {leg['away']}")
+    zones = sorted(set(votes))
+    if len(zones) == 1:
+        why = f"{len(votes)} kickoff(s) agree"
+        return zones[0], why + (f"; ignored (rescheduled?): {', '.join(odd)}" if odd else "")
+    if len(zones) > 1:
+        return None, "kickoffs disagree"
+    return None, ("no leg kickoff matches a known one: " + ", ".join(odd)) if odd else "no leg with a known kickoff"
+
+
 @dataclass
 class Plan:
     bets: list = field(default_factory=list)      # Bets rows (input columns only)
@@ -207,7 +247,11 @@ def plan(slips, tips, existing_slip_nos, next_n, fx, accounts):
         book, cur = accounts[acct]
         sid = f"S-{next_n:04d}"
         next_n += 1
-        placed = to_pht(s["placed"], book)
+        offset, why = slip_offset(book, s, tips)
+        if offset is None:
+            out.problems.append(f"{sid}: can't tell this {book} slip's time zone ({why}). "
+                                f"Set \"tz\": 7 (UTC+7) or 8 (PHT) on the slip")
+        placed = to_pht(s["placed"], book, offset)
         acc_odds = 1.0
         n_legs = len(s["legs"])
         system = s.get("system")  # "3/5": every 3-leg combination of 5 legs, stake split evenly
@@ -220,9 +264,11 @@ def plan(slips, tips, existing_slip_nos, next_n, fx, accounts):
             ttype = TYPES.get(n_legs, f"{n_legs}-fold")
         out.lines.append(f"ticket {sid} (slip № {no}) {acct} {ttype} stake {s['stake']:,} {cur}"
                          f"{'' if system else ' @ ' + str(s['total_odds'])}  placed {placed:%a %d %b %H:%M} PHT")
+        if book in FLIP_OFFSETS and offset is not None:
+            out.lines.append(f"   {book} times read as UTC+{offset}{' (PHT)' if offset == PHT_OFFSET else ''}: {why}")
         for n, leg in enumerate(s["legs"], start=1):
             acc_odds *= leg["odds"]
-            ko = to_pht(leg["kickoff"], book) if leg.get("kickoff") else None
+            ko = to_pht(leg["kickoff"], book, offset) if leg.get("kickoff") else None
             try:
                 sel = parse_slip_market(leg["market"], leg["sport"], leg["home"], leg["away"])
             except SlipParseError as e:

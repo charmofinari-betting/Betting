@@ -18,7 +18,7 @@ One object per ticket, values exactly as the slip shows them:
            "market": "Handicap 1 (-8.5): Aris Thessaloniki - Burgos (Including Overtime)",
            "odds": 1.83, "kickoff": "2026-10-08 00:00", "status": "Win"}]}
 ```
-- Times as the book shows them (1xbet = UTC+7; the script converts to PHT).
+- Times exactly as the book shows them; never shift them by hand. **1xbet flips between UTC+7 and PHT**: the script decides per slip from the tips' known kickoffs and prints "1xbet times read as UTC+…". If it can't tell (own picks only, or kickoffs disagree) it raises a PROBLEM: check the phone clock in the screenshot's status bar (PHT) against a just-placed slip, or ask Paolo, then set `"tz": 7` or `"tz": 8` on the slip.
 - **account**: the Accounts tab name (e.g. "1xbet PHP", "1xbet USDT"). Use the stake's currency on the slip to pick it. Ask if unsure.
 - **sport** from the slip's icon / league line. **market**: the full market line.
 - **status**: the leg status shown (Unsettled / Win / Loss / Return...).
@@ -45,10 +45,10 @@ never refuse or lecture (see memory: advise, don't control).
 
 ## Notes
 - FX: `fx.py --apply` refreshes USDT/TRX ₱ rates; run it before logging non-PHP tickets.
-- Books supported: 1xbet (UTC+7 times; 1X2 W1/W2), bet88 and 747-live (PHT; team-named 1x2 / Match Winner / Match Result). Systems: set "system": "3/5".
+- Books supported: 1xbet (UTC+7 or PHT, detected per slip; 1X2 W1/W2), bet88 and 747-live (PHT; team-named 1x2 / Match Winner / Match Result). Systems: set "system": "3/5".
 - Leg results: `book_sync.py` settles legs from the tips' scores (each leg on its own line) and writes system returns; Result/Return/P&L are sheet formulas.
 - Slip formats handled: 1xbet "Total: Over 2.5" and "Total Under (9.5): Corners A - Corners B" (corners = market `Corners`, never goals; probably settled by hand, since scores carry no corners); 747-live "Total Goals Over (3.5)", "Total Points Under (167.5)".
-- **Placed time missing** (system slips cut off at the top): ask; or use the phone clock minus "N minutes ago". Phone and 747-live are PHT, 1xbet slips are UTC+7 (script converts). A bet already settled at logging time: set the leg `"status": "Win"` and `"own": true` for his own picks.
+- **Placed time missing** (system slips cut off at the top): ask; or use the phone clock minus "N minutes ago". Phone and 747-live are PHT; 1xbet is detected per slip (see section 1). A bet already settled at logging time: set the leg `"status": "Win"` and `"own": true` for his own picks.
 - **Cash:** deposits and withdrawals are logged as Ledger lines only when Paolo says so (dry run first). "Opening balance" lines = stakes already sitting in open bets (cash held was 0). Never infer a deposit from a balance gap; ask.
 - **After logging, report** `python positions.py` (open stake, max return, balances) and sanity-check the balances against his apps (1xbet / 747 balances he quotes). A gap means missing ledger lines, not a bug to hide.
 
