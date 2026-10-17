@@ -179,7 +179,18 @@
     "Women's Super League": "Football",
     "World Championship Women Qual.": "Football",
     "Ykkönen": "Football",
-    "Ykkösliiga": "Football"
+    "Ykkösliiga": "Football",
+    "National League South": "Football",
+    "National League North": "Football",
+    "TOPLYGA": "Football",
+    "Primera Divisió": "Football",
+    "Doha Bank Stars League": "Football",
+    "División Profesional": "Football",
+    "2. NL": "Football",
+    "Tweede Divisie": "Football",
+    "MLS": "Football",
+    "Kazakhstan Premier League": "Football",
+    "Stoiximan GBL": "Basketball"
   },
   "league_aliases": {
     "SuperLiga României": "SuperLiga România"

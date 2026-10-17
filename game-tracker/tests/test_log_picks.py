@@ -44,6 +44,23 @@ class PlanTest(unittest.TestCase):
         p = plan([["Sweden", "Superettan", "IFK Norrköping vs OIF Sundsvall", "OVER 3.25", "1.95"]], EXISTING, VOCAB)
         self.assertEqual(len(p.new), 1)
 
+    def test_ladder_logs_every_line_with_its_own_odds(self):
+        p = plan([["Sweden", "Superettan", "Varbergs BoIS vs Helsingborgs IF", "HOME (-0.5*, 0, 0)", "2.40 / 1.70 / 1.70"]],
+                 EXISTING, VOCAB)
+        self.assertEqual(p.problems, [])
+        self.assertEqual([(r[11], r[12], r[13]) for r in p.new], [(-0.5, "HOME -0.5*", 2.4), (0.0, "HOME 0", 1.7)])
+        self.assertEqual(p.duplicates[0][1], "this batch")
+
+    def test_ladder_line_already_logged_is_skipped(self):
+        p = plan([["Sweden", "Superettan", "IFK Norrköping vs OIF Sundsvall", "OVER (3.25, 3.5*)", "1.95 / 2.15"]],
+                 EXISTING, VOCAB)
+        self.assertEqual(([r[12] for r in p.new], [d[1] for d in p.duplicates]), (["OVER 3.25"], ["T-0041"]))
+
+    def test_ladder_odds_count_mismatch_is_a_problem(self):
+        p = plan([["Sweden", "Superettan", "A vs B", "UNDER (2.5, 3*)", "2.45"]], EXISTING, VOCAB)
+        self.assertEqual((len(p.new), len(p.problems)), (0, 1))
+        self.assertIn("2 lines but 1 odds", p.problems[0][1])
+
     def test_league_alias_and_tennis_tour(self):
         p = plan([["Romania", "SuperLiga României", "FC Universitatea Cluj vs FC Rapid București", "AWAY 0.0", "1.96"],
                   ["Challenger", "Somewhere New, Peru", "A Player vs B Player", "ML HOME", "1.80", "2026-10-09 21:30"]],

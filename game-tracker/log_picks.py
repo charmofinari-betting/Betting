@@ -46,9 +46,34 @@ class Plan:
     warnings: list = field(default_factory=list)    # (input line no, message): shown, never block
 
 
+LADDER = re.compile(r"^(.*\S)\s*\(([^()]*,[^()]*)\)$")
+
+
+def expand_ladder(text, odds_s):
+    """A ladder tip ("UNDER (2.5, 3*)" @ "2.45 / 1.95") -> one (text, odds) per line, the
+    tipster's starred line keeping its "*" in the text. Anything else comes back unchanged.
+    Raises ValueError when the number of lines and odds differ."""
+    m = LADDER.match(text)
+    if not m:
+        return [(text, odds_s)]
+    lines = [x.strip() for x in m[2].split(",")]
+    odds = [x.strip() for x in odds_s.split("/")]
+    if len(lines) != len(odds):
+        raise ValueError(f"ladder has {len(lines)} lines but {len(odds)} odds")
+    return [(f"{m[1]} {ln}", o) for ln, o in zip(lines, odds)]
+
+
 def plan(picks, existing, vocab):
     """picks: list of input rows [country, league, event, market, odds, kickoff?].
+    A ladder row is logged as one row per line (see expand_ladder).
     existing: Sheet1 data rows (from row 3). Pure function: no I/O."""
+    expanded = []
+    for n, p in enumerate(picks, start=1):
+        p = [c.strip() for c in p] + [""] * (6 - len(p))
+        try:
+            expanded += [(n, p[:3] + [t, o] + p[5:6]) for t, o in expand_ladder(p[3], p[4])]
+        except ValueError as e:
+            expanded.append((n, p[:6] + [str(e)]))
     out = Plan()
     seen = {}
     teams = {}  # normalised -> spelling used in the sheet
@@ -60,9 +85,11 @@ def plan(picks, existing, vocab):
         seen[dedupe_key(*r[6:12])] = r[0]
         teams.update({norm(t): t for t in r[6:8]})
     tours = set(vocab["tennis_tours"])
-    for n, p in enumerate(picks, start=1):
-        p = [c.strip() for c in p] + [""] * (6 - len(p))
+    for n, p in expanded:
         country, league, event, text, odds_s, ko_s = p[:6]
+        if len(p) > 6:  # ladder that couldn't be expanded
+            out.problems.append((n, f"{event} {text}: {p[6]}"))
+            continue
         league = vocab["league_aliases"].get(league, league)
         home, sep, away = event.partition(" vs ")
         home = vocab["team_aliases"].get(home.strip(), home.strip())
@@ -74,7 +101,7 @@ def plan(picks, existing, vocab):
         if not sport:
             problems.append(f"unknown league {league!r} ({country}): add it to league_sport, or an alias")
         try:
-            sel = parse_selection(text)
+            sel = parse_selection(text.rstrip("*"))
         except ParseError as e:
             problems.append(str(e))
             sel = None
