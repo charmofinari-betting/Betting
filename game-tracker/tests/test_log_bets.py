@@ -182,6 +182,17 @@ class Bet88AndSystemTest(unittest.TestCase):
         self.assertEqual(p("[80:76]Live Betting Spread: Girona -4.5", "Basketball", "Girona", "Leyma Coruna"),
                          Selection("Handicap", "FT", "Home", -4.5))
 
+    def test_solaire_moneyline_and_multis(self):
+        from log_bets import parse_slip_market as p
+        self.assertEqual(p("[3:0]Live Betting Moneyline: Gladiators Trier", "Basketball", "Fraport Skyliners", "Gladiators Trier"),
+                         Selection("Moneyline", "FT", "Away"))
+        self.assertEqual(p("FT 1x2: Barletta", "Football", "Barletta", "AZ Picerno ASD"),
+                         Selection("Handicap", "FT", "Home", -0.5))
+        self.assertEqual(p("FT O/U: Over 2.75", "Football", "Pescara", "Ostia Mare"),
+                         Selection("Total", "FT", "Over", 2.75))
+        self.assertEqual(p("FT Asian Handicap: Aris Limassol 0", "Football", "Aris Limassol", "AEK Larnaca"),
+                         Selection("Handicap", "FT", "Home", 0.0))
+
     def test_bet88_markets(self):
         from log_bets import parse_slip_market as p
         self.assertEqual(p("Draw no bet Always Ready", "Football", "The Strongest", "Always Ready"),

@@ -85,6 +85,29 @@ def parse_slip_market(text, sport, home=None, away=None):
     m = re.match(r"^(?:\[\d+:\d+\]\s*)?(?:live betting )?spread:?\s*(.+?)\s+([+-]?\d+(?:\.\d+)?)$", x, flags=re.I)
     if m:  # Solaire "[80:76]Live Betting Spread: Girona -4.5" (score at bet time in brackets)
         return Selection("Handicap", "FT", _side_from_team(m[1], home, away, text), float(m[2]))
+    m = re.match(r"^(?:\[\d+:\d+\]\s*)?(?:live betting )?moneyline:?\s*(.+)$", x, flags=re.I)
+    if m:  # Solaire "[3:0]Live Betting Moneyline: Gladiators Trier"
+        side = _side_from_team(m[1], home, away, text)
+        return Selection("Handicap", "FT", side, -0.5) if sport == "Football" else Selection("Moneyline", "FT", side)
+    # Solaire multis: market label + selection, transcribed as "FT 1x2: Barletta", "FT O/U: Over 2.75",
+    # "FT Asian Handicap: Aris Limassol 0"
+    m = re.match(r"^(ft|1h) (1x2|o/u|asian handicap):\s*(.+)$", x, flags=re.I)
+    if m:
+        half, kind, sel = m[1].upper(), m[2].lower(), m[3].strip()
+        if kind == "o/u":
+            t = re.match(r"^(over|under) (\d+(?:\.\d+)?)$", sel, flags=re.I)
+            if t:
+                return Selection("Total", half, t[1].title(), float(t[2]))
+        elif kind == "asian handicap":
+            t = re.match(r"^(.+?)\s+([+-]?\d+(?:\.\d+)?)$", sel)
+            if t:
+                return Selection("Handicap", half, _side_from_team(t[1], home, away, text), float(t[2]))
+        else:
+            if sel.lower() in ("draw", "x"):
+                raise SlipParseError(f"draw bet {text!r}: no tip market for it")
+            side = _side_from_team(sel, home, away, text)
+            return Selection("Handicap", half, side, -0.5) if sport == "Football" else Selection("Moneyline", "FT", side)
+        raise SlipParseError(f"can't read Solaire selection {text!r}")
     x = re.sub(r"^total:\s*", "total ", x, flags=re.I)  # 1xbet variant "Total: Over 2.5"
     x = re.sub(r"^handicap:\s*", "handicap ", x, flags=re.I)  # 1xbet variant "Handicap: 1 (-11.5)"
     x = re.sub(r"^team wins:\s*team ([12]) wins", lambda m: f"1x2: W{m[1]}", x, flags=re.I)  # "Team Wins: Team 1 Wins"
