@@ -204,7 +204,19 @@
     "Iberostar Tenerife": "La Laguna Tenerife",
     "Baskonia": "Kosner Baskonia",
     "Panathinaikos Athens": "Panathinaikos FC",
-    "Asteras Tripolis": "Asteras Aktor"
+    "Asteras Tripolis": "Asteras Aktor",
+    "Kifisias": "AE Kifisia",
+    "A.E. Kifisias": "AE Kifisia",
+    "Aris": "Aris Thessaloniki",
+    "Aris Thessaloniki FC": "Aris Thessaloniki",
+    "Saski Baskonia": "Kosner Baskonia",
+    "Baskonia Vitoria-Gasteiz": "Kosner Baskonia",
+    "CB 1939 Canarias": "La Laguna Tenerife",
+    "Girona": "Bàsquet Girona",
+    "Basquet Girona": "Bàsquet Girona",
+    "Leyma Coruna": "Leyma Basquet Coruña",
+    "CB Coruna": "Leyma Basquet Coruña",
+    "Leyma Basquet Coruna": "Leyma Basquet Coruña"
   },
   "api_team_aliases": {
     "Turun Palloseura": "Turku PS",
