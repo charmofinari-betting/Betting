@@ -200,7 +200,11 @@
     "Ekenas": "EIF",
     "Ekenas Idrottsforening": "EIF",
     "KaPa": "KäPa",
-    "KaPa Kapylan Pallo": "KäPa"
+    "KaPa Kapylan Pallo": "KäPa",
+    "Iberostar Tenerife": "La Laguna Tenerife",
+    "Baskonia": "Kosner Baskonia",
+    "Panathinaikos Athens": "Panathinaikos FC",
+    "Asteras Tripolis": "Asteras Aktor"
   },
   "api_team_aliases": {
     "Turun Palloseura": "Turku PS",
@@ -258,6 +262,12 @@
     "Panathinaikos FC": "Panathinaikos",
     "Asteras Aktor": "Asteras Tripolis",
     "Pescara": "Pescara",
-    "Ostiamare": "Ostia Mare"
+    "Ostiamare": "Ostia Mare",
+    "Polissya Zhytomyr": "Polessya",
+    "Dynamo Kyiv": "Dynamo Kyiv",
+    "Hereda San Pablo Burgos": "San Pablo Burgos",
+    "Monbus Obradoiro": "Obradoiro CAB",
+    "FC Blau Weiss Linz": "FC BW Linz",
+    "FC Liefering": "FC Liefering"
   }
 }
