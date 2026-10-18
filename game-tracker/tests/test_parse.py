@@ -31,6 +31,7 @@ class ExamplesTest(unittest.TestCase):
             "CARDS AWAY UNDER 2.5": Selection("Away team cards", "FT", "Under", 2.5),
             "CARDS AWAY -0.5": Selection("Cards handicap", "FT", "Away", -0.5),
             "CARDS HOME 0.5": Selection("Cards handicap", "FT", "Home", 0.5),
+            "CORNERS HOME -2.5": Selection("Corners handicap", "FT", "Home", -2.5),
             "Set Handicap +1.5 Home": Selection("Set handicap", "FT", "Home", 1.5),
             "SET HANDICAP -1.5 AWAY": Selection("Set handicap", "FT", "Away", -1.5),
             "HTFT HOME/HOME": Selection("HT/FT", "FT", "Home"),

@@ -190,10 +190,20 @@
     "Tweede Divisie": "Football",
     "MLS": "Football",
     "Kazakhstan Premier League": "Football",
-    "Stoiximan GBL": "Basketball"
+    "Stoiximan GBL": "Basketball",
+    "LaLiga": "Football",
+    "V-League 1": "Football",
+    "K League 2": "Football",
+    "Persian Gulf Pro League": "Football",
+    "Liga 1 Te Apuesto": "Football",
+    "Jamaica Premier League": "Football",
+    "Schweizer Cup": "Football",
+    "BBL-Pokal": "Basketball",
+    "Primera FEB": "Basketball"
   },
   "league_aliases": {
-    "SuperLiga României": "SuperLiga România"
+    "SuperLiga României": "SuperLiga România",
+    "Frauen-Bundesliga": "Frauen Bundesliga"
   },
   "team_aliases": {
     "GIF Sundsvall": "OIF Sundsvall",
@@ -280,6 +290,10 @@
     "Hereda San Pablo Burgos": "San Pablo Burgos",
     "Monbus Obradoiro": "Obradoiro CAB",
     "FC Blau Weiss Linz": "FC BW Linz",
-    "FC Liefering": "FC Liefering"
+    "FC Liefering": "FC Liefering",
+    "Astana": "FC Astana",
+    "Caspiy Aktau": "Kaspiy",
+    "Wolfsberger AC": "Wolfsberger AC",
+    "WSG Tirol": "WSG Wattens"
   }
 }
