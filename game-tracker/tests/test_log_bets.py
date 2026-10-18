@@ -177,6 +177,11 @@ class Bet88AndSystemTest(unittest.TestCase):
         self.assertEqual(p("Asian Handicap - Match: Niigata Albirex (-0.25)", "Football", "Oita Trinita", "Niigata Albirex"),
                          Selection("Handicap", "FT", "Away", -0.25))
 
+    def test_solaire_spread(self):
+        from log_bets import parse_slip_market as p
+        self.assertEqual(p("[80:76]Live Betting Spread: Girona -4.5", "Basketball", "Girona", "Leyma Coruna"),
+                         Selection("Handicap", "FT", "Home", -4.5))
+
     def test_bet88_markets(self):
         from log_bets import parse_slip_market as p
         self.assertEqual(p("Double chance draw or CF Rayo Majadahonda", "Football", "Real Jaen CF", "CF Rayo Majadahonda"),

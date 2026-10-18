@@ -79,6 +79,9 @@ def parse_slip_market(text, sport, home=None, away=None):
     if m:  # double chance = the team or the draw = that side at +0.5 (football)
         return Selection("Handicap", "1H" if re.search(r"1st half|first half", x, flags=re.I) else "FT",
                          "Home" if m[1].lower() == "1x" else "Away", 0.5)
+    m = re.match(r"^(?:\[\d+:\d+\]\s*)?(?:live betting )?spread:?\s*(.+?)\s+([+-]?\d+(?:\.\d+)?)$", x, flags=re.I)
+    if m:  # Solaire "[80:76]Live Betting Spread: Girona -4.5" (score at bet time in brackets)
+        return Selection("Handicap", "FT", _side_from_team(m[1], home, away, text), float(m[2]))
     x = re.sub(r"^total:\s*", "total ", x, flags=re.I)  # 1xbet variant "Total: Over 2.5"
     x = re.sub(r"^handicap:\s*", "handicap ", x, flags=re.I)  # 1xbet variant "Handicap: 1 (-11.5)"
     x = re.sub(r"^team wins:\s*team ([12]) wins", lambda m: f"1x2: W{m[1]}", x, flags=re.I)  # "Team Wins: Team 1 Wins"
