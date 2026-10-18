@@ -20,6 +20,7 @@ class SlipMarketTest(unittest.TestCase):
             ("Individual Total 1 Over (1.5): A - B", "Football", Selection("Home team total", "FT", "Over", 1.5)),
             ("Total Under (9.5): Corners Kashima Antlers - Corners Gamba Osaka", "Football", Selection("Corners", "FT", "Under", 9.5)),
             ("Corners: Total Under (9.5)", "Football", Selection("Corners", "FT", "Under", 9.5)),
+            ("Total Under (3.5): Cards Le Havre - Cards Auxerre", "Football", Selection("Cards", "FT", "Under", 3.5)),
             ("Total. Cards: Over 4.5", "Football", Selection("Cards", "FT", "Over", 4.5)),
             ("Total. Cards: Total Over (4.5)", "Football", Selection("Cards", "FT", "Over", 4.5)),
             ("Double Chance: 2X: Oldham Athletic - Accrington Stanley", "Football", Selection("Handicap", "FT", "Away", 0.5)),
