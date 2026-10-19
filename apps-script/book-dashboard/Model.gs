@@ -46,7 +46,7 @@ function buildModel(data, now) {
   data.checks.slice(1).forEach(function (r) {
     var at = parsePht(r[0]);
     if (!r[1] || !at) return;
-    if (!latest[r[1]] || at > latest[r[1]].t) latest[r[1]] = {t: at, row: r};
+    if (!latest[r[1]] || at >= latest[r[1]].t) latest[r[1]] = {t: at, row: r};
   });
 
   var tickets = {};
@@ -81,7 +81,7 @@ function buildModel(data, now) {
       if (Math.abs(card.check.gap) >= MATCH_TOLERANCE) card.status = 'red';
       else if (card.check.ageDays <= STALE_DAYS) card.status = 'green';
     }
-    if (card.expected === 0 && card.openStakes === 0 && a[4] !== 'Active') {
+    if (card.expected === 0 && card.openStakes === 0 && a[4] !== 'Active' && card.status !== 'red') {
       model.hidden.push(card);
       return;
     }

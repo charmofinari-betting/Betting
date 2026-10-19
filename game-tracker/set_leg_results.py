@@ -46,7 +46,7 @@ def main():
             ws.update(range_name=f"J{row}", values=[[result]], value_input_option="RAW")
         print(f"  written: {len(todo)} leg results")
         from bets_refresh import refresh
-        for line in refresh(book, apply=True):
+        for line in refresh(book, apply=True, auto=True):
             print("  refresh " + line)
 
 

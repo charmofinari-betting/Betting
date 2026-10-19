@@ -134,7 +134,7 @@ def main():
                              value_input_option="RAW")
     print(f"  written: {len(updates)} leg results, {len(systems)} system returns")
     from bets_refresh import refresh
-    for line in refresh(book, apply=True):
+    for line in refresh(book, apply=True, auto=True):
         print("  refresh " + line)
 
 

@@ -70,6 +70,19 @@ test('latest check per account wins', () => {
   assert.strictEqual(m.own[0].status, 'green');
 });
 
+test('a re-check with the same time: the later sheet row wins', () => {
+  const m = buildModel(data({accounts: [acc('bet88')], balances: [bal('bet88', '1.00')],
+    checks: [chk('19 Oct 2026 09:00', 'bet88', '-5000.00'), chk('19 Oct 2026 09:00', 'bet88', '0.00')]}), NOW);
+  assert.strictEqual(m.own[0].status, 'green');
+});
+
+test('a red card is never hidden, even on an inactive empty account', () => {
+  const m = buildModel(data({accounts: [acc('winzir', 'Paolo', 'PHP', 'Closed')], balances: [bal('winzir', '0.00')],
+    checks: [chk('19 Oct 2026 12:00', 'winzir', '300.00')]}), NOW);
+  assert.deepStrictEqual(m.own.map(c => [c.account, c.status]), [['winzir', 'red']]);
+  assert.deepStrictEqual(m.hidden, []);
+});
+
 test('holder accounts are grouped under the holder and excluded from summary.cash', () => {
   const m = buildModel(data({
     accounts: [acc('bet88'), acc('msw.ph Pat', 'Pat'), acc('bet88 Tish', 'Tish')],

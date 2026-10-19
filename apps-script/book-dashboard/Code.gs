@@ -8,7 +8,10 @@ var BOOK_KEY = '1zfPQqyLsFtFoDkluO4R7was3wyh5au6jV1Eyayykxdg';
 function readTab(book, name, cols) {
   var ws = book.getSheetByName(name);
   if (!ws) return [new Array(cols).fill('')];
-  return ws.getRange(1, 1, Math.max(ws.getLastRow(), 1), cols).getDisplayValues();
+  var have = Math.min(cols, ws.getMaxColumns()); // Bets may still be 22 wide before bets_refresh's first run
+  return ws.getRange(1, 1, Math.max(ws.getLastRow(), 1), have).getDisplayValues().map(function (r) {
+    return r.concat(new Array(cols - have).fill(''));
+  });
 }
 
 function doGet() {

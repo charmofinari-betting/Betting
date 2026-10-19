@@ -1,6 +1,6 @@
 import unittest
 
-from bets_refresh import BEFORE, refresh_plan
+from bets_refresh import BEFORE, HEADER, refresh, refresh_plan
 
 NOW = "19 Oct 2026 14:05"
 
@@ -47,6 +47,46 @@ class BetsRefreshTest(unittest.TestCase):
     def test_short_rows_and_blank_rows_are_safe(self):
         short = bet("S-1", "Single", "500", result="Lost")[:22]
         self.assertEqual(refresh_plan([short, []], [], NOW, True), [(2, "", "", BEFORE)])
+
+
+class FakeWs:
+    def __init__(self, values, cols):
+        self.values, self.col_count, self.writes = values, cols, []
+
+    def get_all_values(self):
+        return self.values
+
+    def add_cols(self, n):
+        self.col_count += n
+
+    def batch_update(self, updates, value_input_option=None):
+        last = max(ord(u["range"].split(":")[-1][0]) - 64 for u in updates)
+        if last > self.col_count:
+            raise RuntimeError("exceeds grid limits")
+        self.writes += updates
+
+
+class FakeBook:
+    def __init__(self, bets_ws):
+        self.ws = {"Bets": bets_ws, "Legs": FakeWs([["h"]], 14)}
+
+    def worksheet(self, name):
+        return self.ws[name]
+
+
+class RefreshWriteTest(unittest.TestCase):
+    def test_apply_widens_a_22_column_bets_grid(self):
+        head = ["h"] * 22
+        ws = FakeWs([head, bet("S-1", "Single", "500", result="Lost")[:22]], 22)
+        refresh(FakeBook(ws), apply=True, now=NOW)
+        self.assertEqual(ws.col_count, 25)
+        self.assertEqual(ws.writes[0], {"range": "W1:Y1", "values": [HEADER]})
+
+    def test_auto_refresh_skips_the_first_run(self):
+        ws = FakeWs([["h"] * 22, bet("S-1", "Single", "500", result="Lost")[:22]], 22)
+        lines = refresh(FakeBook(ws), apply=True, now=NOW, auto=True)
+        self.assertEqual(ws.writes, [])
+        self.assertIn("bets_refresh.py", lines[0])
 
 
 if __name__ == "__main__":

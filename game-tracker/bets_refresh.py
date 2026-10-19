@@ -42,15 +42,19 @@ def refresh_plan(bets, legs, now, first_run):
     return out
 
 
-def refresh(book, apply, now=None):
+def refresh(book, apply, now=None, auto=False):
+    """auto=True (called from log_bets / book_sync / set_leg_results): never does the first run, which
+    needs its own dry run and Paolo's yes."""
     ws = book.worksheet("Bets")
     values = ws.get_all_values()
     head = values[0] + [""] * (25 - len(values[0]))
     first_run = head[22:25] != HEADER
+    if auto and first_run:
+        return ["skipped: Bets W:Y not set up yet; run bets_refresh.py (dry run, then --apply) first"]
     plan = refresh_plan(values[1:], book.worksheet("Legs").get_all_values()[1:], now or now_pht(), first_run)
     settled = sum(1 for p in plan if p[3])
     lines = [f"Bets W:Y {'APPLY' if apply else 'dry run'}: {len(plan)} rows ({len(plan) - settled} open, {settled} settled)"
-             + ("; header W1:Y1 added" if first_run else "")]
+             + ("; header W1:Y1 " + ("added" if apply else "would be added") if first_run else "")]
     shown = [p for p in plan if p[3] != BEFORE]
     lines += [f"{values[row - 1][0]} {values[row - 1][2]}: max {m or '-'} | settled {s or '-'}" for row, m, _, s in shown]
     if len(shown) < len(plan):
@@ -60,6 +64,8 @@ def refresh(book, apply, now=None):
         if first_run:
             updates.insert(0, {"range": "W1:Y1", "values": [HEADER]})
         if updates:
+            if ws.col_count < 25:
+                ws.add_cols(25 - ws.col_count)  # Bets was created 22 columns wide
             ws.batch_update(updates, value_input_option="RAW")
     return lines
 
