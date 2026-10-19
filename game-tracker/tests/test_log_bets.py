@@ -194,6 +194,10 @@ class Bet88AndSystemTest(unittest.TestCase):
                          Selection("Handicap", "FT", "Home", 0.0))
         self.assertEqual(p("FT Spread: Crvena Zvezda +4.5", "Basketball", "KK Partizan Beograd", "Crvena Zvezda"),
                          Selection("Handicap", "FT", "Away", 4.5))
+        self.assertEqual(p("FT Moneyline: Alba Berlin", "Basketball", "Alba Berlin", "Brose Bamberg"),
+                         Selection("Moneyline", "FT", "Home"))
+        self.assertEqual(p("Corners FT O/U: Under 9.0", "Football", "Braga", "Gil Vicente"),
+                         Selection("Corners", "FT", "Under", 9.0))
         self.assertEqual(p("Cards FT O/U: Under 3.5", "Football", "Monza", "Cagliari"),
                          Selection("Cards", "FT", "Under", 3.5))
         self.assertEqual(p("FT Winner: Neel / Olmos", "Tennis", "Neel / Olmos", "Y T Cho / I-H Cho"),

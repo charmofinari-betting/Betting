@@ -98,7 +98,7 @@ def parse_slip_market(text, sport, home=None, away=None):
     # Solaire multis: market label + selection, transcribed as "FT 1x2: Barletta", "FT O/U: Over 2.75",
     # "FT Asian Handicap: Aris Limassol 0", "FT Spread: Alba Berlin -6.0",
     # "FT Winner: Neel / Olmos"
-    m = re.match(r"^(cards |corners )?(ft|1h) (1x2|o/u|asian handicap|spread|winner):\s*(.+)$", x, flags=re.I)
+    m = re.match(r"^(cards |corners )?(ft|1h) (1x2|o/u|asian handicap|spread|winner|moneyline):\s*(.+)$", x, flags=re.I)
     if m:  # "Cards FT O/U: Under 3.5" = cards total
         stat, half, kind, sel = (m[1] or "").strip().title(), m[2].upper(), m[3].lower(), m[4].strip()
         if stat and kind != "o/u":
