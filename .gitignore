@@ -5,3 +5,4 @@ __pycache__/
 .venv/
 game-tracker/out/
 game-tracker/data/
+.superpowers/
