@@ -1,6 +1,6 @@
 import unittest
 
-from balances import expected_as_of, parse_pht, plan_check, resolve_account
+from balances import expected_as_of, fmt_pht, parse_pht, plan_check, resolve_account
 from bets_refresh import BEFORE
 
 AT = parse_pht("19 Oct 2026 14:00")
@@ -87,6 +87,10 @@ class CheckTest(unittest.TestCase):
 
     def test_exact_account_accepted(self):
         self.assertEqual(resolve_account("msw.ph Pat", ["msw.ph Pat", "msw.ph Grace"]), "msw.ph Pat")
+
+    def test_checked_at_is_written_in_the_sheet_format(self):
+        self.assertEqual(fmt_pht(parse_pht("19 oct 2026 9:05")), "19 Oct 2026 09:05")
+        self.assertEqual(fmt_pht(parse_pht("07 Oct 2026 11:59")), "7 Oct 2026 11:59")
 
     def test_plan_check_row(self):
         row, gap = plan_check("bet88", 9500.0, "19 Oct 2026 14:00", 9000.12, "abc", "")

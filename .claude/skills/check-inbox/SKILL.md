@@ -20,8 +20,8 @@ Read-only on Drive. Empty inbox → say so in one line and stop.
 Open each downloaded image with Read.
 - **Tips/** → tips table → follow the `log-picks` skill (TSV in the scratchpad, dry run).
 - **Slips/** → bet slip → follow the `log-bets` skill (JSON in the scratchpad, dry run).
-- **Balances/** (or a balance screenshot in a holder's `Slips/<Holder>/`) → the app's **one balance figure** for one account → `balances.py check` dry run (below). Account = the app shown (+ the holder if it came from their folder), exactly as in Accounts. Checked at = time visible on the screenshot, else the file's Drive time converted to PHT (`inbox.pht_from_created`). A split balance (cash / bonus / pending) or an unclear account: leave it and ask.
-- **Order:** slips first, then balance checks, so the expected balance already includes this batch's slips.
+- **Balances/** (or a balance screenshot in a holder's `Slips/<Holder>/`) → the app's **one balance figure** for one account → `balances.py check` dry run (below). Account = the app shown (+ the holder if it came from their folder), exactly as in Accounts. Checked at = time visible on the screenshot, else the pull's "taken ..." time (`inbox.capture_time`: phone file name, then photo metadata, then upload time; say which when it's upload time, it can be hours late). A split balance (cash / bonus / pending) or an unclear account: leave it and ask.
+- **Order (two rounds when a batch has both):** round 1 = tips + slips dry run → his yes → apply. Round 2 = balance checks dry run (now the expected balance includes this batch's slips) → his yes → apply. A balance dry run made before the slips are applied shows a wrong gap: never approve one.
 - A file in the wrong folder: route it by what it shows, and mention it.
 - Not a tip table or slip, unreadable, or cut off (no slip header): leave it in the inbox and ask Paolo. Never invent a slip number, time or result.
 - Several screenshots of one tips table or one slip: treat them together.
@@ -37,7 +37,7 @@ Prints app vs expected-at-check and a trace. A gap ≥ 1.00: say it plainly with
 Show Paolo one compact summary for the whole batch (he reads on a phone): new tips, new tickets, balance checks (match / gap), PROBLEM / CHECK / ASK lines, files skipped and why. Write nothing until he says yes.
 
 ## 4. Apply, then clear the inbox
-On his yes: `--apply` in log_picks / log_bets as their skills say. Then move **only the files whose contents were logged or found already logged**:
+On his yes: `--apply` in log_picks / log_bets as their skills say; for balances, re-run the same `balances.py check` line with `--apply` (and the `--note` / `--after-ledger` he agreed). Then move **only the files whose contents were logged or found already logged**:
 ```
 PYTHONIOENCODING=utf-8 ../.venv/Scripts/python inbox.py done <id> <id> ...           # dry run
 PYTHONIOENCODING=utf-8 ../.venv/Scripts/python inbox.py done <id> <id> ... --apply

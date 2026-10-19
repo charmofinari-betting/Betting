@@ -45,7 +45,7 @@ def session(scopes=READONLY):
 
 def children(s, fid):
     r = s.get(API, params={"q": f"'{fid}' in parents and trashed=false",
-                           "fields": "files(id,name,mimeType,createdTime)",
+                           "fields": "files(id,name,mimeType,createdTime,imageMediaMetadata(time))",
                            "orderBy": "createdTime", "pageSize": 1000})
     r.raise_for_status()
     return r.json()["files"]
@@ -66,6 +66,20 @@ def pht_from_created(created_time):
     """Drive createdTime (UTC) -> sheet time in PHT, e.g. '19 Oct 2026 14:05' (screenshots with no visible time)."""
     d = datetime.strptime(created_time[:19], "%Y-%m-%dT%H:%M:%S") + timedelta(hours=8)
     return f"{d.day} {d:%b %Y %H:%M}"
+
+
+def capture_time(f):
+    """When a screenshot was taken, PHT, and how we know: the phone's Screenshot_YYYYMMDD-HHMMSS name (phone clock = PHT),
+    then photo metadata, then Drive upload time (can be hours late)."""
+    m = re.search(r"(20\d{6})[-_](\d{4})", f.get("name", ""))
+    if m:
+        d = datetime.strptime(m[1] + m[2], "%Y%m%d%H%M")
+        return f"{d.day} {d:%b %Y %H:%M}", "file name"
+    t = (f.get("imageMediaMetadata") or {}).get("time")
+    if t:
+        d = datetime.strptime(t[:16], "%Y:%m:%d %H:%M")
+        return f"{d.day} {d:%b %Y %H:%M}", "photo metadata"
+    return pht_from_created(f["createdTime"]), "upload time"
 
 
 def list_new(s):
@@ -145,7 +159,8 @@ def show(files):
         print("Inbox empty.")
     for f in files:
         print(f"{f['folder']:<12} {f['createdTime'][:16].replace('T', ' ')} UTC  {f['id']}  {f['name']}"
-              + ("" if f["placed_by"] == "Paolo" else f"  (placed by {f['placed_by']})"))
+              + ("" if f["placed_by"] == "Paolo" else f"  (placed by {f['placed_by']})")
+              + (f"  taken {' ('.join(capture_time(f))})" if f["folder"] == "Balances" else ""))
 
 
 def main(argv):

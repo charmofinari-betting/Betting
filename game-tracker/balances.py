@@ -34,6 +34,10 @@ def parse_pht(s):
     return None
 
 
+def fmt_pht(d):
+    return f"{d.day} {d:%b %Y %H:%M}"
+
+
 def settle_time(stamp, kickoffs):
     """None = settled before any check (no usable stamp, or 'before tracking')."""
     if not stamp or stamp == BEFORE:
@@ -120,6 +124,7 @@ def check(book, argv, apply):
                                       book.worksheet("Bets").get_all_values()[1:],
                                       book.worksheet("Ledger").get_all_values()[1:], after_rows,
                                       book.worksheet("Legs").get_all_values()[1:])
+    at_s = fmt_pht(at)  # the page only reads the sheet format
     row, gap = plan_check(account, app, at_s, exp, opt(argv, "--source"), opt(argv, "--note"))
     status = "matches" if abs(gap) < 1 else f"GAP {gap:+,.2f}"
     print(f"[{book.title}] balance check {'APPLY' if apply else 'dry run'}: {account} at {at_s}")

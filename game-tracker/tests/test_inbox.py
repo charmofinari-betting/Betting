@@ -4,7 +4,7 @@ from pathlib import Path
 import os
 import tempfile
 
-from inbox import FOLDER_MIME, balances_folder, check_done, local_name, pht_from_created, plan_pull, tag
+from inbox import FOLDER_MIME, balances_folder, capture_time, check_done, local_name, pht_from_created, plan_pull, tag
 from sync import in_reach
 
 F = {"id": "abc123", "name": "Screenshot_20261016.jpg", "mimeType": "image/jpeg",
@@ -15,6 +15,14 @@ class TestBalancesInbox(unittest.TestCase):
     def test_created_time_to_pht(self):
         self.assertEqual(pht_from_created("2026-10-19T06:05:07.123Z"), "19 Oct 2026 14:05")
         self.assertEqual(pht_from_created("2026-10-08T17:30:00Z"), "9 Oct 2026 01:30")
+
+    def test_capture_time_prefers_screenshot_name_then_photo_metadata(self):
+        f = {"name": "Screenshot_20261019-140512_1xbet.jpg", "createdTime": "2026-10-19T09:00:00Z"}
+        self.assertEqual(capture_time(f), ("19 Oct 2026 14:05", "file name"))
+        f = {"name": "IMG.jpg", "createdTime": "2026-10-19T09:00:00Z", "imageMediaMetadata": {"time": "2026:10:19 13:58:07"}}
+        self.assertEqual(capture_time(f), ("19 Oct 2026 13:58", "photo metadata"))
+        f = {"name": "x.jpg", "createdTime": "2026-10-19T06:05:07.123Z"}
+        self.assertEqual(capture_time(f), ("19 Oct 2026 14:05", "upload time"))
 
     def test_balances_folder_found_by_name(self):
         kids = [{"id": "f1", "name": "Tips", "mimeType": FOLDER_MIME},
