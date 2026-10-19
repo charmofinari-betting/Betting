@@ -195,6 +195,7 @@
     "V-League 1": "Football",
     "K League 2": "Football",
     "Persian Gulf Pro League": "Football",
+    "Vysshaya Liga": "Football",
     "Liga 1 Te Apuesto": "Football",
     "Jamaica Premier League": "Football",
     "Schweizer Cup": "Football",
@@ -229,6 +230,9 @@
     "Leyma Basquet Coruna": "Leyma Basquet Coruña",
     "Fraport Skyliners": "Fraport Skyliners Frankfurt",
     "Paju Citizen": "Paju Frontier FC",
+    "Turk Telekom": "Türk Telekom B.K.",
+    "Brose Bamberg": "Bamberg Baskets",
+    "KK Partizan Beograd": "KK Partizan Mozzart Bet",
     "TBB Trier": "Gladiators Trier"
   },
   "api_team_aliases": {
