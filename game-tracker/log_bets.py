@@ -97,13 +97,15 @@ def parse_slip_market(text, sport, home=None, away=None):
         return Selection(f"{_side_from_team(m[1], home, away, text)} team cards", "FT", m[2].title(), float(m[3]))
     # Solaire multis: market label + selection, transcribed as "FT 1x2: Barletta", "FT O/U: Over 2.75",
     # "FT Asian Handicap: Aris Limassol 0", "FT Winner: Neel / Olmos"
-    m = re.match(r"^(ft|1h) (1x2|o/u|asian handicap|winner):\s*(.+)$", x, flags=re.I)
-    if m:
-        half, kind, sel = m[1].upper(), m[2].lower(), m[3].strip()
+    m = re.match(r"^(cards |corners )?(ft|1h) (1x2|o/u|asian handicap|winner):\s*(.+)$", x, flags=re.I)
+    if m:  # "Cards FT O/U: Under 3.5" = cards total
+        stat, half, kind, sel = (m[1] or "").strip().title(), m[2].upper(), m[3].lower(), m[4].strip()
+        if stat and kind != "o/u":
+            raise SlipParseError(f"can't read Solaire selection {text!r}")
         if kind == "o/u":
             t = re.match(r"^(over|under) (\d+(?:\.\d+)?)$", sel, flags=re.I)
             if t:
-                return Selection("Total", half, t[1].title(), float(t[2]))
+                return Selection(stat or "Total", half, t[1].title(), float(t[2]))
         elif kind == "asian handicap":
             t = re.match(r"^(.+?)\s+([+-]?\d+(?:\.\d+)?)$", sel)
             if t:
