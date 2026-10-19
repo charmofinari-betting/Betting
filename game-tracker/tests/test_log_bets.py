@@ -192,6 +192,12 @@ class Bet88AndSystemTest(unittest.TestCase):
                          Selection("Total", "FT", "Over", 2.75))
         self.assertEqual(p("FT Asian Handicap: Aris Limassol 0", "Football", "Aris Limassol", "AEK Larnaca"),
                          Selection("Handicap", "FT", "Home", 0.0))
+        self.assertEqual(p("FT Winner: Neel / Olmos", "Tennis", "Neel / Olmos", "Y T Cho / I-H Cho"),
+                         Selection("Moneyline", "FT", "Home"))
+        self.assertEqual(p("[0:0] Live Betting Winner: Catherine McNally", "Tennis", "Catherine McNally", "Sinja Kraus"),
+                         Selection("Moneyline", "FT", "Home"))
+        self.assertEqual(p("Tottenham: Team Total Cards O/U: Over 1.5", "Football", "Tottenham", "Coventry"),
+                         Selection("Home team cards", "FT", "Over", 1.5))
 
     def test_bet88_markets(self):
         from log_bets import parse_slip_market as p

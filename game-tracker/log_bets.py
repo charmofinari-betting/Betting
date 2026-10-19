@@ -87,13 +87,17 @@ def parse_slip_market(text, sport, home=None, away=None):
     m = re.match(r"^(?:\[\d+:\d+\]\s*)?(?:live betting )?spread:?\s*(.+?)\s+([+-]?\d+(?:\.\d+)?)$", x, flags=re.I)
     if m:  # Solaire "[80:76]Live Betting Spread: Girona -4.5" (score at bet time in brackets)
         return Selection("Handicap", "FT", _side_from_team(m[1], home, away, text), float(m[2]))
-    m = re.match(r"^(?:\[\d+:\d+\]\s*)?(?:live betting )?moneyline:?\s*(.+)$", x, flags=re.I)
-    if m:  # Solaire "[3:0]Live Betting Moneyline: Gladiators Trier"
+    m = re.match(r"^(?:\[\d+:\d+\]\s*)?(?:live betting )?(?:moneyline|winner):?\s*(.+)$", x, flags=re.I)
+    if m and (x.startswith("[") or x.lower().startswith(("live betting", "moneyline"))):
+        # Solaire "[3:0]Live Betting Moneyline: Gladiators Trier", "[0:0] Live Betting Winner: Catherine McNally"
         side = _side_from_team(m[1], home, away, text)
         return Selection("Handicap", "FT", side, -0.5) if sport == "Football" else Selection("Moneyline", "FT", side)
+    m = re.match(r"^(.+?): team total cards o/u:?\s*(over|under) (\d+(?:\.\d+)?)$", x, flags=re.I)
+    if m:  # Solaire "Tottenham: Team Total Cards O/U: Over 1.5"
+        return Selection(f"{_side_from_team(m[1], home, away, text)} team cards", "FT", m[2].title(), float(m[3]))
     # Solaire multis: market label + selection, transcribed as "FT 1x2: Barletta", "FT O/U: Over 2.75",
-    # "FT Asian Handicap: Aris Limassol 0"
-    m = re.match(r"^(ft|1h) (1x2|o/u|asian handicap):\s*(.+)$", x, flags=re.I)
+    # "FT Asian Handicap: Aris Limassol 0", "FT Winner: Neel / Olmos"
+    m = re.match(r"^(ft|1h) (1x2|o/u|asian handicap|winner):\s*(.+)$", x, flags=re.I)
     if m:
         half, kind, sel = m[1].upper(), m[2].lower(), m[3].strip()
         if kind == "o/u":
