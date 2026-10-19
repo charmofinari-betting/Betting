@@ -121,7 +121,7 @@ def main():
             ko_day = datetime.strptime(ko, "%d %B %Y %H:%M").date().isoformat()
         reach = ko_day and in_reach(sport, ko_day, days, saved)
         needed |= {(sport, d) for d in ([ko_day] if reach else days if not ko_day else [])}
-    pool, spent, skipped = [], 0, []
+    pool, spent, skipped, failed = [], 0, [], []
     for sport, d in sorted(needed):
         cached = (HERE / "data" / "api" / sport.lower() / f"{d}.json")
         fresh = cached.exists() and time.time() - cached.stat().st_mtime < 3 * 3600
@@ -130,10 +130,15 @@ def main():
         except DateNotAvailable:
             skipped.append(f"{sport} {d}")  # near UTC midnight the API's window is a day behind PHT's
             continue
+        except RuntimeError as e:  # API refused (e.g. account suspended): use what's cached, say so
+            failed.append(f"{sport} {d}: {e}")
+            continue
         spent += 0 if fresh else 1
     print(f"  {len(todo)} matches need a fixture; fetched {len(needed)} day(s), {spent} new API request(s)")
     if skipped:
         print(f"  skipped (the free plan refuses these dates for now): {', '.join(skipped)}")
+    for f in failed:
+        print(f"  FETCH FAILED (not settled from the API): {f}")
 
     updates, sure, checks, missing = [], 0, [], []
     for (sport, home, away), group in sorted(todo.items(), key=lambda kv: kv[1][0][0]):

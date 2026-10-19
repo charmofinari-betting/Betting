@@ -195,6 +195,8 @@ class Bet88AndSystemTest(unittest.TestCase):
 
     def test_bet88_markets(self):
         from log_bets import parse_slip_market as p
+        self.assertEqual(p("Total corners over 9.5", "Football", "FC Cincinnati", "Columbus Crew"),
+                         Selection("Corners", "FT", "Over", 9.5))
         self.assertEqual(p("Draw no bet Always Ready", "Football", "The Strongest", "Always Ready"),
                          Selection("Handicap", "FT", "Away", 0.0))
         self.assertEqual(p("Double chance draw or CF Rayo Majadahonda", "Football", "Real Jaen CF", "CF Rayo Majadahonda"),

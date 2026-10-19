@@ -64,6 +64,8 @@ def parse_slip_market(text, sport, home=None, away=None):
     m = re.match(r"^total (over|under) \(?(\d+(?:\.\d+)?)\)?:\s*corners", x, flags=re.I)
     if not m:  # 747-live: "Corners: Total Under (9.5)"
         m = re.match(r"^(?:1st half |first half )?corners:? total (over|under) \(?(\d+(?:\.\d+)?)\)?$", x, flags=re.I)
+    if not m:  # bet88: "Total corners over 9.5"
+        m = re.match(r"^(?:1st half |first half )?total corners (over|under) \(?(\d+(?:\.\d+)?)\)?$", x, flags=re.I)
     if m:  # corners totals are their own market, never goals
         return Selection("Corners", "1H" if re.search(r"1st half|first half", x, flags=re.I) else "FT", m[1].title(), float(m[2]))
     m = re.match(r"^total (over|under) \(?(\d+(?:\.\d+)?)\)?:\s*cards", x, flags=re.I)
