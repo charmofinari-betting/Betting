@@ -432,6 +432,9 @@ def main():
     if p.ledger:
         led_ws.update(range_name=f"A{g0}", values=p.ledger, value_input_option="RAW")
     print(f"  written: tickets from Bets row {b0}, legs from Legs row {l0}" + (f", ledger from row {g0}" if p.ledger else ""))
+    from bets_refresh import refresh
+    for line in refresh(book, apply=True):
+        print("  refresh " + line)
 
 
 if __name__ == "__main__":

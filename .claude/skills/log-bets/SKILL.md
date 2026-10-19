@@ -51,4 +51,5 @@ never refuse or lecture (see memory: advise, don't control).
 - **Placed time missing** (system slips cut off at the top): ask; or use the phone clock minus "N minutes ago". Phone and 747-live are PHT; 1xbet is detected per slip (see section 1). A bet already settled at logging time: set the leg `"status": "Win"` and `"own": true` for his own picks.
 - **Cash:** deposits and withdrawals are logged as Ledger lines only when Paolo says so (dry run first). "Opening balance" lines = stakes already sitting in open bets (cash held was 0). Never infer a deposit from a balance gap; ask.
 - **After logging, report** `python positions.py` (open stake, max return, balances) and sanity-check the balances against his apps (1xbet / 747 balances he quotes). A gap means missing ledger lines, not a bug to hide.
+- `--apply` (here, in `book_sync.py` and `set_leg_results.py`) also refreshes Bets W:Y (Max return, Max return at, Settled at) for the book dashboard; its lines print as `refresh ...`.
 

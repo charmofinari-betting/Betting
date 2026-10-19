@@ -133,6 +133,9 @@ def main():
         bets_ws.batch_update([{"range": f"U{row}:V{row}", "values": [[ret, at_tip]]} for row, _, ret, at_tip in systems],
                              value_input_option="RAW")
     print(f"  written: {len(updates)} leg results, {len(systems)} system returns")
+    from bets_refresh import refresh
+    for line in refresh(book, apply=True):
+        print("  refresh " + line)
 
 
 if __name__ == "__main__":

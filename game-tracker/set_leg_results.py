@@ -27,7 +27,8 @@ def main():
     if bad:
         sys.exit("\n".join(bad))
     from inspect_sheet import READONLY, READWRITE, client
-    ws = client(READWRITE if apply else READONLY).open_by_key(BOOK_KEY).worksheet("Legs")
+    book = client(READWRITE if apply else READONLY).open_by_key(BOOK_KEY)
+    ws = book.worksheet("Legs")
     rows = ws.get_all_values()
     print(f"[Private Betting] set leg results: {'APPLY' if apply else 'dry run'}")
     todo = []
@@ -44,6 +45,9 @@ def main():
         for row, result in todo:
             ws.update(range_name=f"J{row}", values=[[result]], value_input_option="RAW")
         print(f"  written: {len(todo)} leg results")
+        from bets_refresh import refresh
+        for line in refresh(book, apply=True):
+            print("  refresh " + line)
 
 
 if __name__ == "__main__":
