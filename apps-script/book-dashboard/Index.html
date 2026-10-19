@@ -1,0 +1,98 @@
+<!DOCTYPE html>
+<html>
+<head>
+<base target="_top">
+<meta charset="utf-8">
+<style>
+  :root { --bg:#f6f6f4; --card:#fff; --ink:#1d1d1b; --muted:#6b6b66; --line:#e2e2dd;
+          --red:#c0392b; --red-bg:#fdf0ee; --amber:#b9770e; --amber-bg:#fdf6e9; --green:#1e8449; }
+  @media (prefers-color-scheme: dark) {
+    :root { --bg:#161615; --card:#222220; --ink:#ececea; --muted:#9a9a94; --line:#33332f;
+            --red:#ff7b6b; --red-bg:#3a201c; --amber:#f0b74f; --amber-bg:#352a15; --green:#5fd08a; }
+  }
+  * { box-sizing: border-box; }
+  body { margin:0; background:var(--bg); color:var(--ink); font:15px/1.4 -apple-system, system-ui, "Segoe UI", Roboto, sans-serif; }
+  main { max-width: 760px; margin: 0 auto; padding: 16px; }
+  h1 { font-size: 20px; margin: 0 0 2px; }
+  h2 { font-size: 13px; text-transform: uppercase; letter-spacing: .06em; color: var(--muted); margin: 22px 0 8px; }
+  .asof { color: var(--muted); font-size: 12px; }
+  .strip { display:grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); gap: 8px; margin-top: 12px; }
+  .stat { background: var(--card); border: 1px solid var(--line); border-radius: 10px; padding: 10px 12px; }
+  .stat .k { font-size: 11px; color: var(--muted); text-transform: uppercase; letter-spacing: .04em; }
+  .stat .v { font-size: 18px; font-weight: 600; font-variant-numeric: tabular-nums; margin-top: 2px; }
+  .stat .s { font-size: 11px; color: var(--muted); }
+  .cards { display:grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 8px; }
+  .card { background: var(--card); border: 1px solid var(--line); border-radius: 10px; padding: 10px 12px; font-variant-numeric: tabular-nums; }
+  .card.red { border: 2px solid var(--red); background: var(--red-bg); }
+  .card.amber { border: 2px dashed var(--amber); background: var(--amber-bg); }
+  .card .name { font-weight: 600; display:flex; justify-content:space-between; gap:8px; }
+  .tag { font-size: 12px; font-weight: 600; }
+  .red .tag { color: var(--red); } .amber .tag { color: var(--amber); } .green .tag { color: var(--green); }
+  .gap { font-size: 20px; font-weight: 700; color: var(--red); margin: 4px 0 2px; }
+  .row { display:flex; justify-content:space-between; font-size: 13px; }
+  .row span:first-child { color: var(--muted); }
+  .note { font-size: 12px; margin-top: 6px; color: var(--muted); }
+  .holder-sum { font-size: 13px; color: var(--muted); margin: -4px 0 8px; }
+  button { margin-top: 18px; background: none; border: 1px solid var(--line); color: var(--muted); border-radius: 8px; padding: 6px 10px; font: inherit; font-size: 13px; }
+  .hidden { display: none; }
+</style>
+</head>
+<body>
+<main id="app"></main>
+<script>
+var M = <?!= modelJson ?>;
+
+function money(x, cur) {
+  var s = Math.abs(x).toLocaleString('en-US', {minimumFractionDigits: 2, maximumFractionDigits: 2});
+  var sign = x < 0 ? '−' : '';
+  return cur === 'PHP' ? sign + '₱' + s : sign + s + ' ' + cur;
+}
+function signed(x, cur) { return (x > 0 ? '+' : '') + money(x, cur); }
+function esc(s) { return String(s).replace(/[&<>"]/g, function (c) { return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]; }); }
+function ago(d) { return d === 0 ? 'today' : d === 1 ? '1 day ago' : d + ' days ago'; }
+
+function card(c) {
+  var h = '<div class="card ' + c.status + '"><div class="name"><span>' + esc(c.account) + '</span>';
+  if (c.status === 'red') {
+    h += '<span class="tag">Gap</span></div><div class="gap">' + signed(c.check.gap, c.currency) + '</div>' +
+      '<div class="row"><span>App</span><span>' + money(c.check.app, c.currency) + '</span></div>' +
+      '<div class="row"><span>Expected at check</span><span>' + money(c.check.expectedAtCheck, c.currency) + '</span></div>' +
+      '<div class="row"><span>Checked</span><span>' + ago(c.check.ageDays) + '</span></div>';
+  } else if (c.status === 'amber') {
+    h += '<span class="tag">' + (c.check ? 'Checked ' + ago(c.check.ageDays) : 'Never checked') + '</span></div>';
+  } else {
+    h += '<span class="tag">✓ ' + ago(c.check.ageDays) + '</span></div>';
+  }
+  h += '<div class="row"><span>Expected now</span><span>' + money(c.expected, c.currency) + '</span></div>';
+  if (c.openTickets) h += '<div class="row"><span>Open (' + c.openTickets + ')</span><span>' + money(c.openStakes, c.currency) + '</span></div>';
+  if (c.check && c.check.note) h += '<div class="note">' + esc(c.check.note) + '</div>';
+  return h + '</div>';
+}
+function cards(list) { return '<div class="cards">' + list.map(card).join('') + '</div>'; }
+function stat(k, v, s) { return '<div class="stat"><div class="k">' + k + '</div><div class="v">' + v + '</div>' + (s ? '<div class="s">' + s + '</div>' : '') + '</div>'; }
+
+var S = M.summary, h = '';
+h += '<h1>Books</h1><div class="asof">Live from the sheet · opened ' + esc(M.opened) +
+  (M.newestBet ? ' · newest ticket ' + esc(M.newestBet) : '') + (M.newestCheck ? ' · newest balance check ' + esc(M.newestCheck) : '') + '</div>';
+h += '<div class="strip">' +
+  stat('Cash in books', money(S.cash, 'PHP')) +
+  stat('Open stakes', money(S.openStakes, 'PHP')) +
+  stat('Max return', money(S.maxReturn, 'PHP'), 'ceiling if every open leg wins' + (S.maxReturnAt ? ' · ' + esc(S.maxReturnAt) : '')) +
+  stat('Books matched', S.matched + ' of ' + S.total) +
+  (M.crypto.length ? stat('Crypto', M.crypto.map(function (c) { return money(c.expected, c.currency); }).join('<br>')) : '') +
+  '</div>';
+h += '<h2>My books</h2>' + cards(M.own);
+if (M.crypto.length) h += '<h2>Crypto</h2>' + cards(M.crypto);
+Object.keys(M.holders).sort().forEach(function (name) {
+  var x = M.holders[name];
+  h += '<h2>' + esc(name) + '</h2><div class="holder-sum">Cash ' + money(x.summary.cash, 'PHP') + ' · open ' + money(x.summary.openStakes, 'PHP') +
+    (x.summary.maxReturn ? ' · max return ' + money(x.summary.maxReturn, 'PHP') : '') + '</div>' + cards(x.cards);
+});
+if (M.hidden.length) {
+  h += '<button onclick="document.getElementById(\'hid\').classList.toggle(\'hidden\')">Show all (' + M.hidden.length + ' inactive, empty)</button>' +
+    '<div id="hid" class="hidden"><h2>Inactive</h2>' + cards(M.hidden) + '</div>';
+}
+document.getElementById('app').innerHTML = h;
+</script>
+</body>
+</html>
