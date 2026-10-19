@@ -12,7 +12,7 @@ Done after logging, so nothing is logged twice and the originals are kept.
 import os
 import re
 import sys
-from datetime import datetime
+from datetime import datetime, timedelta
 from pathlib import Path
 
 from google.auth.transport.requests import AuthorizedSession
@@ -25,6 +25,7 @@ FOLDERS = {
     "Slips": "1vR9k_gAW1yXpSA_u2Hvp1U9k7FRMyxW7",
 }
 DONE = "1nO48uECyB8uNbv_VgRvQ-zbWlcMeDNPQ"
+INBOX = "1lmR5BH7rkViNXymsog8BoIIDzOZETT8e"  # Betting Inbox; its "Balances" subfolder is found by name
 RESULTS = "1ikv3MHSqtN9busGPGpNjt7OIxqMfjnO8"  # filled by apps-script/results_fetch.gs
 CACHE = Path(__file__).resolve().parent / "data" / "api"
 OUT = Path(__file__).resolve().parent / "out" / "inbox"
@@ -56,8 +57,19 @@ def tag(files, folder, parent, placed_by="Paolo"):
             for f in files if f["mimeType"] != FOLDER_MIME]
 
 
+def balances_folder(inbox_children):
+    """Id of the Balances folder in Betting Inbox, None until Paolo creates it."""
+    return next((f["id"] for f in inbox_children if f["mimeType"] == FOLDER_MIME and f["name"] == "Balances"), None)
+
+
+def pht_from_created(created_time):
+    """Drive createdTime (UTC) -> sheet time in PHT, e.g. '19 Oct 2026 14:05' (screenshots with no visible time)."""
+    d = datetime.strptime(created_time[:19], "%Y-%m-%dT%H:%M:%S") + timedelta(hours=8)
+    return f"{d.day} {d:%b %Y %H:%M}"
+
+
 def list_new(s):
-    """Files waiting in Tips and Slips, oldest first. Slips/<Holder>/ subfolders hold the
+    """Files waiting in Tips, Slips and Balances, oldest first. Slips/<Holder>/ subfolders hold the
     account holders' slips (Pat, Tish, Grace...): placed_by comes from the folder name."""
     out = []
     for folder, fid in FOLDERS.items():
@@ -66,6 +78,9 @@ def list_new(s):
         if folder == "Slips":
             for sub in (f for f in files if f["mimeType"] == FOLDER_MIME):
                 out += tag(children(s, sub["id"]), f"Slips/{sub['name']}", sub["id"], sub["name"])
+    bal = balances_folder(children(s, INBOX))
+    if bal:
+        out += tag(children(s, bal), "Balances", bal)
     return sorted(out, key=lambda f: f["createdTime"])
 
 

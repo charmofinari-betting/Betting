@@ -4,11 +4,24 @@ from pathlib import Path
 import os
 import tempfile
 
-from inbox import FOLDER_MIME, check_done, local_name, plan_pull, tag
+from inbox import FOLDER_MIME, balances_folder, check_done, local_name, pht_from_created, plan_pull, tag
 from sync import in_reach
 
 F = {"id": "abc123", "name": "Screenshot_20261016.jpg", "mimeType": "image/jpeg",
      "createdTime": "2026-10-16T09:41:07.123Z", "folder": "Slips"}
+
+
+class TestBalancesInbox(unittest.TestCase):
+    def test_created_time_to_pht(self):
+        self.assertEqual(pht_from_created("2026-10-19T06:05:07.123Z"), "19 Oct 2026 14:05")
+        self.assertEqual(pht_from_created("2026-10-08T17:30:00Z"), "9 Oct 2026 01:30")
+
+    def test_balances_folder_found_by_name(self):
+        kids = [{"id": "f1", "name": "Tips", "mimeType": FOLDER_MIME},
+                {"id": "f9", "name": "Balances", "mimeType": FOLDER_MIME},
+                {"id": "x", "name": "Balances", "mimeType": "image/png"}]
+        self.assertEqual(balances_folder(kids), "f9")
+        self.assertIsNone(balances_folder(kids[:1]))
 
 
 class TestInbox(unittest.TestCase):
