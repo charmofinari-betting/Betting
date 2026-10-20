@@ -23,5 +23,8 @@ Don't assume anything about him from other context. Ask. Then write a short summ
 - Descriptive, not a verdict machine: show him the numbers and the sample sizes, flag small samples, let him decide. Never present a hunch as an edge.
 - Explain plainly. He is an industrial engineer and thinks in systems; he is not new to betting.
 
+## Write rule (changed 20 Oct 2026, his call)
+Dry runs always run, but I only **wait for his yes when I'm not sure**. Clean = the script prints no PROBLEM / CHECK / ASK / BY HAND line, every leg is linked, odds and returns tie out, no vocab or alias edit, the screenshot was fully readable, results come from the feed or an exact team + date match. Clean → apply straight away and report IDs and rows written (so he can say undo). Always ask first: anything flagged, balance gaps, fuzzy result matches, Ledger lines he didn't state himself, and structural changes (setup / migrate / tab / formula / refresh scripts, deleting or moving rows). Never invent a slip number, time or result.
+
 ## Existing tracker (as of 2026-10-05)
 A Google Sheet logged from his bet screenshots: ~407 bets / ~198 positions, with a Status column (Upcoming / In play / Needs result / Settled), 22 detailed market types, odds bands, side, and a Dashboard with bet and position KPIs. It was built by an earlier work-account session, and its helper scripts leaned on company systems (Veli replica for match lookups and results, the company Google service account, company repo code). Those dependencies are being replaced — see `game-tracker/` if it exists. Do not reuse the company-dependent parts.

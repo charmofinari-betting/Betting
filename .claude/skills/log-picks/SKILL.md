@@ -38,14 +38,15 @@ Show Paolo: how many are new / already logged / problems, the new rows as a shor
 - **Unrecognised selection:** don't map it by hand. Tell Paolo; a new market type needs a `parse.py` change with tests.
 - Show any `vocab.json` edit in the dry run summary, then run the dry run again until clean.
 
-## 4. Apply only on Paolo's explicit "yes"
+## 4. Apply (Write rule in CLAUDE.md)
+Clean dry run (no PROBLEM / CHECK, no vocab edit) → apply straight away; otherwise after Paolo answers step 3.
 ```
 PYTHONIOENCODING=utf-8 ../.venv/Scripts/python log_picks.py <tsv> --apply
 ```
 Report the IDs and sheet rows written. Commit `vocab.json` if it changed.
 
 ## 5. Then sync kickoffs
-Run `sync.py` (dry run) right after logging, show Paolo what it found, and `--apply` on his yes:
+Run `sync.py` (dry run) right after logging, and `--apply` straight away if clean (else show Paolo the CHECK / not-found lines first):
 ```
 PYTHONIOENCODING=utf-8 ../.venv/Scripts/python sync.py
 ```
@@ -55,6 +56,6 @@ Picks more than a day ahead stay "No kickoff" until a later sync (free-plan wind
 - Default target is the live sheet. `--staging` targets the staging copy; use it to try anything new.
 - Kickoffs for football/basketball come from `sync.py` (api-sports, yesterday..tomorrow only). Tennis kickoffs and results are Paolo's.
 - Sync also settles: for finished matches it writes Score (O) and Result (P) from the 90-minute score (basketball incl. OT). ASK lines (postponed/cancelled, corners, cards) and BY HAND lines (tennis, matches before the window) go to Paolo; enter his answers in Result (P) via a dry-run-first write.
-- **"sync" also settles the private book:** after `sync.py --apply`, run `book_sync.py` (dry run) — it settles his ticket legs from the tips' scores on each leg's own line, and computes system-bet returns — then `--apply` on his yes.
-- When Paolo says "sync" on its own: run `sync.py` dry run, show the found / CHECK / not-found lines, apply on his yes. CHECK lines: ask him, then re-run with `--accept <IDs>`.
+- **"sync" also settles the private book:** after `sync.py --apply`, run `book_sync.py` (dry run) — it settles his ticket legs from the tips' scores on each leg's own line, and computes system-bet returns — then `--apply` (same rule: clean → straight away).
+- When Paolo says "sync" on its own: run `sync.py` dry run, apply the clean results straight away, show him the CHECK / not-found lines. CHECK lines: ask him, then re-run with `--accept <IDs>`.
 - Duplicates are matched on Home + Away + Market + Period + Side + Line (accents and case ignored), not on kickoff.

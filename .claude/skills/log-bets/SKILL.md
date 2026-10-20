@@ -39,8 +39,8 @@ Show Paolo each ticket with its legs → tip IDs, drift %, and every CHECK / PRO
 - **Odds or potential mismatch:** re-read the screenshot; it's almost always a transcription slip.
 - **Unrecognised market:** don't force it; tell Paolo and extend `parse_slip_market` with a test.
 
-## 4. Apply only on Paolo's "yes"
-Re-run with `--apply`; report ticket IDs. Advisory, not policing: show drift plainly when large,
+## 4. Apply (Write rule in CLAUDE.md)
+Clean dry run (no CHECK / PROBLEM, every leg linked, odds and potential tie out) → re-run with `--apply` straight away. Anything from step 3 → apply only after Paolo answers. Report ticket IDs and rows written either way. Advisory, not policing: show drift plainly when large,
 never refuse or lecture (see memory: advise, don't control).
 
 ## Notes

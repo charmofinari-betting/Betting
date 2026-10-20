@@ -21,7 +21,7 @@ Open each downloaded image with Read.
 - **Tips/** → tips table → follow the `log-picks` skill (TSV in the scratchpad, dry run).
 - **Slips/** → bet slip → follow the `log-bets` skill (JSON in the scratchpad, dry run).
 - **Balances/** (or a balance screenshot in a holder's `Slips/<Holder>/`) → the app's **one balance figure** for one account → `balances.py check` dry run (below). Account = the app shown (+ the holder if it came from their folder), exactly as in Accounts. Checked at = time visible on the screenshot, else the pull's "taken ..." time (`inbox.capture_time`: phone file name, then photo metadata, then upload time; say which when it's upload time, it can be hours late). A split balance (cash / bonus / pending) or an unclear account: leave it and ask.
-- **Order (two rounds when a batch has both):** round 1 = tips + slips dry run → his yes → apply. Round 2 = balance checks dry run (now the expected balance includes this batch's slips) → his yes → apply. A balance dry run made before the slips are applied shows a wrong gap: never approve one.
+- **Order (two rounds when a batch has both):** round 1 = tips + slips dry run → apply (straight away if clean, else on his yes). Round 2 = balance checks dry run (now the expected balance includes this batch's slips) → apply the same way. A balance dry run made before the slips are applied shows a wrong gap: never apply one.
 - A file in the wrong folder: route it by what it shows, and mention it.
 - Not a tip table or slip, unreadable, or cut off (no slip header): leave it in the inbox and ask Paolo. Never invent a slip number, time or result.
 - Several screenshots of one tips table or one slip: treat them together.
@@ -33,11 +33,11 @@ PYTHONIOENCODING=utf-8 ../.venv/Scripts/python balances.py check "<account>" <am
 ```
 Prints app vs expected-at-check and a trace. A gap ≥ 1.00: say it plainly with the trace's most likely cause (a ticket the book settled that the sheet hasn't, an unlogged deposit/withdrawal) and put that in `--note` as a *possible* cause. Never "fix" a gap: Ledger/Bets change only through their own confirmed flows. ASK lines (same-day Ledger lines) need Paolo's answer → `--after-ledger`. First time only: `balances.py setup` (dry run, then `--apply` on his yes) adds the Balance checks tab.
 
-## 3. One dry-run summary, then wait
-Show Paolo one compact summary for the whole batch (he reads on a phone): new tips, new tickets, balance checks (match / gap), PROBLEM / CHECK / ASK lines, files skipped and why. Write nothing until he says yes.
+## 3. Dry run, then apply if clean (see "Write rule" in CLAUDE.md)
+Always run the dry runs. **Clean** parts of the batch (no PROBLEM / CHECK / ASK line, every leg linked, odds and returns tie out, no vocab edit, a balance check that matches) are applied straight away. Anything **not sure** waits: show Paolo one compact summary (he reads on a phone) of what was applied, what needs his answer, and files skipped and why. A balance gap ≥ 1.00 always waits for him.
 
 ## 4. Apply, then clear the inbox
-On his yes: `--apply` in log_picks / log_bets as their skills say; for balances, re-run the same `balances.py check` line with `--apply` (and the `--note` / `--after-ledger` he agreed). Then move **only the files whose contents were logged or found already logged**:
+Clean parts right away, the rest on his yes: `--apply` in log_picks / log_bets as their skills say; for balances, re-run the same `balances.py check` line with `--apply` (and the `--note` / `--after-ledger` he agreed). Then move **only the files whose contents were logged or found already logged**:
 ```
 PYTHONIOENCODING=utf-8 ../.venv/Scripts/python inbox.py done <id> <id> ...           # dry run
 PYTHONIOENCODING=utf-8 ../.venv/Scripts/python inbox.py done <id> <id> ... --apply
