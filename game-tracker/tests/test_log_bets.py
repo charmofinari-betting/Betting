@@ -209,6 +209,10 @@ class Bet88AndSystemTest(unittest.TestCase):
 
     def test_bet88_markets(self):
         from log_bets import parse_slip_market as p
+        self.assertEqual(p("Over/Under - Match: Over 173.5", "Basketball", "Hapoel Tel-Aviv", "Virtus Bologna"),
+                         Selection("Total", "FT", "Over", 173.5))
+        self.assertEqual(p("Asian Handicap Sets - Match: La Serna, Juan Manuel (+1.5)", "Tennis", "Dellien, Hugo", "La Serna, Juan Manuel"),
+                         Selection("Set handicap", "FT", "Away", 1.5))
         self.assertEqual(p("Total corners over 9.5", "Football", "FC Cincinnati", "Columbus Crew"),
                          Selection("Corners", "FT", "Over", 9.5))
         self.assertEqual(p("Draw no bet Always Ready", "Football", "The Strongest", "Always Ready"),

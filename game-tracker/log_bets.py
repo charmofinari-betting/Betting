@@ -124,10 +124,13 @@ def parse_slip_market(text, sport, home=None, away=None):
     x = re.sub(r"^win/draw/win\s*-\s*regular time:?\s*", "1x2 ", x, flags=re.I)
     x = re.sub(r"^head to head\s*-\s*match:?\s*", "winner ", x, flags=re.I)
     x = re.sub(r"^both teams to score\s*-\s*regular time:?\s*", "both teams to score ", x, flags=re.I)
-    m = re.match(r"^over/under\s*-\s*regular time:?\s*(over|under) (\d+(?:\.\d+)?)(?:,(\d+(?:\.\d+)?))?$", x, flags=re.I)
+    m = re.match(r"^over/under\s*-\s*(?:regular time|match):?\s*(over|under) (\d+(?:\.\d+)?)(?:,(\d+(?:\.\d+)?))?$", x, flags=re.I)
     if m:  # msw.ph "Over/Under - Regular Time: Under 2.5,3" = split (quarter) line 2.75
         line = (float(m[2]) + float(m[3])) / 2 if m[3] else float(m[2])
         return Selection("Total", "FT", m[1].title(), line)
+    m = re.match(r"^asian handicap sets\s*-\s*match:?\s*(.+?)\s*\(([+-]?\d+(?:\.\d+)?)\)$", x, flags=re.I)
+    if m:  # msw.ph tennis "Asian Handicap Sets - Match: La Serna, Juan Manuel (+1.5)"
+        return Selection("Set handicap", "FT", _side_from_team(m[1], home, away, text), float(m[2]))
     m = re.match(r"^asian handicap\s*-\s*(first half|match|regular time):?\s*(.+?)\s*\(([+-]?\d+(?:\.\d+)?)\)$", x, flags=re.I)
     if m:  # msw.ph "Asian Handicap - First Half: Oita Trinita (0)"
         return Selection("Handicap", "1H" if m[1].lower() == "first half" else "FT",
