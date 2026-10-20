@@ -10,7 +10,7 @@ Read-only. The same numbers live in the **Funds** tab of the Private Betting she
 
 ## Run
 ```
-cd C:/Users/jnplz/betting/game-tracker
+cd game-tracker   # from the repo root (laptop or cloud)
 PYTHONIOENCODING=utf-8 ../.venv/Scripts/python funds.py
 ```
 

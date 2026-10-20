@@ -3,6 +3,9 @@
 Usage: python inspect_sheet.py <sheet_key> [rows]
 Uses a read-only scope, so it cannot write anything.
 """
+import base64
+import json
+import os
 import sys
 from pathlib import Path
 
@@ -10,15 +13,31 @@ import gspread
 from google.oauth2.service_account import Credentials
 
 SECRETS = Path(__file__).resolve().parent.parent / "secrets"
+KEY_ENV = "GOOGLE_SA_JSON"  # cloud sessions: the key file's JSON, raw or base64
 READONLY = ["https://www.googleapis.com/auth/spreadsheets.readonly"]
 READWRITE = ["https://www.googleapis.com/auth/spreadsheets"]
 
 
-def client(scopes=READONLY):
+def key_info(value):
+    """The service-account key from the env var's value: raw JSON, or base64 of it."""
+    value = value.strip()
+    if not value.startswith("{"):
+        value = base64.b64decode(value).decode("utf-8")
+    return json.loads(value)
+
+
+def credentials(scopes):
+    """Google credentials: GOOGLE_SA_JSON when set (cloud), else the one key file in secrets/ (laptop)."""
+    if os.environ.get(KEY_ENV):
+        return Credentials.from_service_account_info(key_info(os.environ[KEY_ENV]), scopes=scopes)
     keys = sorted(SECRETS.glob("*.json"))
     if len(keys) != 1:
-        sys.exit(f"expected one key file in {SECRETS}, found {len(keys)}")
-    return gspread.authorize(Credentials.from_service_account_file(keys[0], scopes=scopes))
+        sys.exit(f"expected one key file in {SECRETS} (or {KEY_ENV} set), found {len(keys)}")
+    return Credentials.from_service_account_file(keys[0], scopes=scopes)
+
+
+def client(scopes=READONLY):
+    return gspread.authorize(credentials(scopes))
 
 
 def main():

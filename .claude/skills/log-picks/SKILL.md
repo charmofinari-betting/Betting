@@ -26,7 +26,7 @@ Country<TAB>League<TAB>Event<TAB>Market<TAB>Sent Odds
 
 ## 2. Dry run
 ```
-cd C:/Users/jnplz/betting/game-tracker
+cd game-tracker   # from the repo root (laptop or cloud)
 PYTHONIOENCODING=utf-8 ../.venv/Scripts/python log_picks.py <tsv>
 ```
 Show Paolo: how many are new / already logged / problems, the new rows as a short table

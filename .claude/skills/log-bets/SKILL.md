@@ -27,7 +27,7 @@ One object per ticket, values exactly as the slip shows them:
 
 ## 2. Dry run
 ```
-cd C:/Users/jnplz/betting/game-tracker
+cd game-tracker   # from the repo root (laptop or cloud)
 PYTHONIOENCODING=utf-8 ../.venv/Scripts/python log_bets.py <json>
 ```
 Show Paolo each ticket with its legs → tip IDs, drift %, and every CHECK / PROBLEM.

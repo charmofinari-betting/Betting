@@ -10,7 +10,7 @@ This skill only fetches and routes. The logging rules live in the other two skil
 
 ## 1. Pull
 ```
-cd C:/Users/jnplz/betting/game-tracker
+cd game-tracker   # from the repo root (laptop or cloud)
 PYTHONIOENCODING=utf-8 ../.venv/Scripts/python inbox.py pull
 ```
 Downloads every file still in Tips/Slips to `game-tracker/out/inbox/` (git-ignored) and prints its Drive id.

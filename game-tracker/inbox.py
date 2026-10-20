@@ -16,9 +16,8 @@ from datetime import datetime, timedelta
 from pathlib import Path
 
 from google.auth.transport.requests import AuthorizedSession
-from google.oauth2.service_account import Credentials
 
-from inspect_sheet import SECRETS
+from inspect_sheet import credentials
 
 FOLDERS = {
     "Tips": "1Esbx1se8FqlXlg87hq8Hd-ZgaP_ejOCC",
@@ -37,10 +36,7 @@ EXT = {"image/jpeg": ".jpg", "image/png": ".png", "image/webp": ".webp", "image/
 
 
 def session(scopes=READONLY):
-    keys = sorted(SECRETS.glob("*.json"))
-    if len(keys) != 1:
-        sys.exit(f"expected one key file in {SECRETS}, found {len(keys)}")
-    return AuthorizedSession(Credentials.from_service_account_file(keys[0], scopes=scopes))
+    return AuthorizedSession(credentials(scopes))
 
 
 def children(s, fid):
