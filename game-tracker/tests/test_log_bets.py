@@ -229,6 +229,9 @@ class Bet88AndSystemTest(unittest.TestCase):
         # bet88 tennis "Winner Surname, First"
         self.assertEqual(p("Winner Joint, Maya", "Tennis", "Sawangkaew, Mananchaya", "Joint, Maya"),
                          Selection("Moneyline", "FT", "Away"))
+        # bet88 tennis first-set winner (scores carry no set detail: settled by hand)
+        self.assertEqual(p("1 set - winner La Serna, Juan Manuel", "Tennis", "Dellien, Hugo", "La Serna, Juan Manuel"),
+                         Selection("1st set winner", "FT", "Away"))
         # 747-live
         self.assertEqual(p("Points Handicap NB Staoueli (Wom) (-1.5)", "Basketball", "NB Staoueli (Wom)", "EL Annaba (Wom)"),
                          Selection("Handicap", "FT", "Home", -1.5))

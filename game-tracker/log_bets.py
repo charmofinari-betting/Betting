@@ -128,6 +128,9 @@ def parse_slip_market(text, sport, home=None, away=None):
     if m:  # msw.ph "Over/Under - Regular Time: Under 2.5,3" = split (quarter) line 2.75
         line = (float(m[2]) + float(m[3])) / 2 if m[3] else float(m[2])
         return Selection("Total", "FT", m[1].title(), line)
+    m = re.match(r"^1(?:st)? set\s*-\s*winner:?\s*(.+)$", x, flags=re.I)
+    if m:  # bet88 tennis "1 set - winner La Serna, Juan Manuel"
+        return Selection("1st set winner", "FT", _side_from_team(m[1], home, away, text))
     m = re.match(r"^asian handicap sets\s*-\s*match:?\s*(.+?)\s*\(([+-]?\d+(?:\.\d+)?)\)$", x, flags=re.I)
     if m:  # msw.ph tennis "Asian Handicap Sets - Match: La Serna, Juan Manuel (+1.5)"
         return Selection("Set handicap", "FT", _side_from_team(m[1], home, away, text), float(m[2]))
