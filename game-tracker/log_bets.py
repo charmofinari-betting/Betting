@@ -131,6 +131,12 @@ def parse_slip_market(text, sport, home=None, away=None):
     m = re.match(r"^1(?:st)? set\s*-\s*winner:?\s*(.+)$", x, flags=re.I)
     if m:  # bet88 tennis "1 set - winner La Serna, Juan Manuel"
         return Selection("1st set winner", "FT", _side_from_team(m[1], home, away, text))
+    m = re.match(r"^set handicap\s+(.+?)\s*\(([+-]?\d+(?:\.\d+)?)\)$", x, flags=re.I)
+    if m:  # bet88 tennis "Set handicap Mannarino, Adrian (+1.5)"
+        return Selection("Set handicap", "FT", _side_from_team(m[1], home, away, text), float(m[2]))
+    m = re.match(r"^(.+?) total points (over|under) (\d+(?:\.\d+)?)$", x, flags=re.I)
+    if m:  # bet88 player prop "Matas Buzelis total points under 15.5": market is "<Player> points"
+        return Selection(f"{m[1].strip()} points", "FT", m[2].title(), float(m[3]))
     m = re.match(r"^asian handicap sets\s*-\s*match:?\s*(.+?)\s*\(([+-]?\d+(?:\.\d+)?)\)$", x, flags=re.I)
     if m:  # msw.ph tennis "Asian Handicap Sets - Match: La Serna, Juan Manuel (+1.5)"
         return Selection("Set handicap", "FT", _side_from_team(m[1], home, away, text), float(m[2]))

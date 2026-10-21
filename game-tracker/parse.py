@@ -98,6 +98,8 @@ def market_detail(sel: Selection, sport: str) -> str:
         return "BTTS 2nd half" if sel.period == "2H" else f"BTTS {sel.side}"
     if sel.market in ("Corners", "Cards"):
         return f"{sel.market} {sel.side}"
+    if sel.market.endswith(" points"):
+        return f"Player points {sel.side}"
     if sel.market.endswith("team cards"):
         return f"Team cards {sel.side}"
     return sel.market  # Moneyline and the half markets keep their own names
