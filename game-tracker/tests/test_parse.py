@@ -23,6 +23,7 @@ class ExamplesTest(unittest.TestCase):
             "AWAY TEAM OVER 0.5 FH": Selection("Away team total", "1H", "Over", 0.5),
             "HOME TEAM UNDER 0.5": Selection("Home team total", "FT", "Under", 0.5),
             "ML HOME": Selection("Moneyline", "FT", "Home"),
+            "AWAY ML": Selection("Moneyline", "FT", "Away"),
             "BTTS YES 2H": Selection("BTTS", "2H", "Yes"),
             "BTTS NO": Selection("BTTS", "FT", "No"),
             "CORNERS UNDER 9.5": Selection("Corners", "FT", "Under", 9.5),
