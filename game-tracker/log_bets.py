@@ -124,7 +124,7 @@ def parse_slip_market(text, sport, home=None, away=None):
     x = re.sub(r"^win/draw/win\s*-\s*regular time:?\s*", "1x2 ", x, flags=re.I)
     x = re.sub(r"^head to head\s*-\s*match:?\s*", "winner ", x, flags=re.I)
     x = re.sub(r"^both teams to score\s*-\s*regular time:?\s*", "both teams to score ", x, flags=re.I)
-    m = re.match(r"^over/under\s*-\s*(?:regular time|match):?\s*(over|under) (\d+(?:\.\d+)?)(?:,(\d+(?:\.\d+)?))?$", x, flags=re.I)
+    m = re.match(r"^over/under\s*-\s*(?:regular time|live match|match):?\s*(over|under) (\d+(?:\.\d+)?)(?:,(\d+(?:\.\d+)?))?$", x, flags=re.I)
     if m:  # msw.ph "Over/Under - Regular Time: Under 2.5,3" = split (quarter) line 2.75
         line = (float(m[2]) + float(m[3])) / 2 if m[3] else float(m[2])
         return Selection("Total", "FT", m[1].title(), line)
