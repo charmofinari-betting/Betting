@@ -24,3 +24,7 @@ Paste the changed files over the old ones → **Deploy → Manage deployments �
 - **Green**: matched, checked within 3 days.
 
 To check a book, screenshot its balance and drop it in Drive **Betting Inbox → Balances**. Holders can use their own Slips folder. Then ask Claude to check the inbox.
+
+## Pages
+- **Books** (default): one card per account. Accounts with 0 cash and nothing open sit behind "Show empty" (a red card is never hidden there).
+- **Money**: per account, deposits (opening + deposits), withdrawals, bonus/adjustments, betting result (settled bets only) and open stakes, so it adds up to the cash figure. Read from the Balances tab only.

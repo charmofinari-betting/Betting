@@ -41,6 +41,14 @@ function sortCards(cards) {
   });
 }
 
+function r2(x) { return Math.round(x * 100) / 100; }
+
+function addMoney(sum, c) {
+  sum.deposits += c.deposits; sum.withdrawals += c.withdrawals; sum.result += c.result; sum.cash += c.cash;
+}
+
+function byAccount(a, b) { return a.account < b.account ? -1 : a.account > b.account ? 1 : 0; }
+
 function buildModel(data, now) {
   var latest = {};
   data.checks.slice(1).forEach(function (r) {
@@ -61,7 +69,8 @@ function buildModel(data, now) {
   data.balances.slice(2).forEach(function (r) { if (r[0]) bal[r[0]] = r; });
 
   var model = {summary: {cash: 0, openStakes: 0, maxReturn: 0, maxReturnAt: '', matched: 0, total: 0},
-    own: [], crypto: [], holders: {}, hidden: [],
+    own: [], crypto: [], holders: {}, empty: [],
+    money: {own: [], crypto: [], holders: {}, summary: {deposits: 0, withdrawals: 0, result: 0, cash: 0}},
     newestBet: newest(data.bets.slice(1).map(function (r) { return r[1]; })),
     newestCheck: newest(data.checks.slice(1).map(function (r) { return r[0]; }))};
   model.summary.maxReturnAt = newest(data.bets.slice(1).filter(function (r) { return r[7] === 'Open'; })
@@ -81,8 +90,29 @@ function buildModel(data, now) {
       if (Math.abs(card.check.gap) >= MATCH_TOLERANCE) card.status = 'red';
       else if (card.check.ageDays <= STALE_DAYS) card.status = 'green';
     }
-    if (card.expected === 0 && card.openStakes === 0 && a[4] !== 'Active' && card.status !== 'red') {
-      model.hidden.push(card);
+    // Money page card: all from the Balances row. result = settled only (Returned - Staked, with open stakes added back).
+    var mc = {account: name, currency: currency, deposits: r2(num(b[1]) + num(b[2])), withdrawals: r2(num(b[3])),
+      transfers: r2(num(b[4])), bonus: r2(num(b[5])), result: r2(num(b[7]) - num(b[6]) + num(b[9])),
+      openStakes: r2(num(b[9])), cash: r2(num(b[8]))};
+    if (mc.deposits || mc.withdrawals || mc.transfers || mc.bonus || mc.result || mc.openStakes || mc.cash) {
+      if (holder !== OWNER) {
+        var mh = model.money.holders[holder] || (model.money.holders[holder] = {summary: {deposits: 0, withdrawals: 0, result: 0, cash: 0}, cards: []});
+        mh.cards.push(mc);
+        if (currency === BASE_CURRENCY) addMoney(mh.summary, mc);
+      } else if (currency !== BASE_CURRENCY) {
+        model.money.crypto.push(mc);
+      } else {
+        model.money.own.push(mc);
+        addMoney(model.money.summary, mc);
+      }
+    }
+    var isEmpty = card.expected === 0 && card.openStakes === 0 && card.status !== 'red';
+    if (isEmpty) {
+      model.empty.push(card);
+      if (a[4] === 'Active' && holder === OWNER) { // active empty books still count; closed ones never did
+        model.summary.total += 1;
+        if (card.status === 'green') model.summary.matched += 1;
+      }
       return;
     }
     if (holder !== OWNER) {
@@ -107,7 +137,6 @@ function buildModel(data, now) {
     model.summary.maxReturn += card.maxReturn;
   });
 
-  var r2 = function (x) { return Math.round(x * 100) / 100; };
   ['cash', 'openStakes', 'maxReturn'].forEach(function (k) { model.summary[k] = r2(model.summary[k]); });
   Object.keys(model.holders).forEach(function (h) {
     var s = model.holders[h].summary;
@@ -115,6 +144,15 @@ function buildModel(data, now) {
     sortCards(model.holders[h].cards);
   });
   sortCards(model.own);
+  sortCards(model.empty);
+  ['deposits', 'withdrawals', 'result', 'cash'].forEach(function (k) { model.money.summary[k] = r2(model.money.summary[k]); });
+  model.money.own.sort(byAccount);
+  model.money.crypto.sort(byAccount);
+  Object.keys(model.money.holders).forEach(function (h) {
+    var x = model.money.holders[h];
+    ['deposits', 'withdrawals', 'result', 'cash'].forEach(function (k) { x.summary[k] = r2(x.summary[k]); });
+    x.cards.sort(byAccount);
+  });
   sortCards(model.crypto);
   return model;
 }

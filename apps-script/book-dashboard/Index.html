@@ -3,17 +3,15 @@
 <head>
 <base target="_top">
 <meta charset="utf-8">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700&display=swap" rel="stylesheet">
 <style>
-  :root { --bg:#f6f6f4; --card:#fff; --ink:#1d1d1b; --muted:#6b6b66; --line:#e2e2dd;
-          --red:#c0392b; --red-bg:#fdf0ee; --amber:#b9770e; --amber-bg:#fdf6e9; --green:#1e8449; }
-  @media (prefers-color-scheme: dark) {
-    :root { --bg:#161615; --card:#222220; --ink:#ececea; --muted:#9a9a94; --line:#33332f;
-            --red:#ff7b6b; --red-bg:#3a201c; --amber:#f0b74f; --amber-bg:#352a15; --green:#5fd08a; }
-  }
+  :root { color-scheme: dark; --bg:#0e0f11; --card:#17191c; --ink:#eceef0; --muted:#8b9096; --line:#262a2e;
+          --red:#ff6b5e; --red-bg:#2a1715; --amber:#f2b44c; --amber-bg:#2a2112; --green:#4fd18b; }
   * { box-sizing: border-box; }
-  body { margin:0; background:var(--bg); color:var(--ink); font:15px/1.4 -apple-system, system-ui, "Segoe UI", Roboto, sans-serif; }
+  body { margin:0; background:var(--bg); color:var(--ink); font:15px/1.4 Manrope, -apple-system, system-ui, "Segoe UI", Roboto, sans-serif; }
   main { max-width: 760px; margin: 0 auto; padding: 16px; }
-  h1 { font-size: 20px; margin: 0 0 2px; }
+  h1 { font-size: 22px; font-weight: 700; margin: 0 0 2px; }
   h2 { font-size: 13px; text-transform: uppercase; letter-spacing: .06em; color: var(--muted); margin: 22px 0 8px; }
   .asof { color: var(--muted); font-size: 12px; }
   .strip { display:grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); gap: 8px; margin-top: 12px; }
@@ -35,6 +33,11 @@
   .holder-sum { font-size: 13px; color: var(--muted); margin: -4px 0 8px; }
   button { margin-top: 18px; background: none; border: 1px solid var(--line); color: var(--muted); border-radius: 8px; padding: 6px 10px; font: inherit; font-size: 13px; }
   .hidden { display: none; }
+  .tabs { display:flex; gap:6px; margin:14px 0 4px; }
+  .tabs button { margin:0; padding:8px 16px; border-radius:20px; font-weight:600; }
+  .tabs button.on { background:var(--ink); color:var(--bg); border-color:var(--ink); }
+  .pos { color:var(--green); } .neg { color:var(--red); }
+  .card .total { border-top:1px solid var(--line); margin-top:5px; padding-top:5px; font-weight:700; }
 </style>
 </head>
 <body>
@@ -71,8 +74,29 @@ function card(c) {
 function cards(list) { return '<div class="cards">' + list.map(card).join('') + '</div>'; }
 function stat(k, v, s) { return '<div class="stat"><div class="k">' + k + '</div><div class="v">' + v + '</div>' + (s ? '<div class="s">' + s + '</div>' : '') + '</div>'; }
 
+function sgn(x, cur) { return x === 0 ? money(0, cur) : '<span class="' + (x > 0 ? 'pos' : 'neg') + '">' + signed(x, cur) + '</span>'; }
+function mcard(c) {
+  var h = '<div class="card"><div class="name"><span>' + esc(c.account) + '</span><span>' + money(c.cash, c.currency) + '</span></div>';
+  h += '<div class="row"><span>Deposits</span><span>' + money(c.deposits, c.currency) + '</span></div>';
+  h += '<div class="row"><span>Withdrawals</span><span>' + money(c.withdrawals, c.currency) + '</span></div>';
+  if (c.transfers) h += '<div class="row"><span>Transfers</span><span>' + sgn(c.transfers, c.currency) + '</span></div>';
+  if (c.bonus) h += '<div class="row"><span>Bonus / adj.</span><span>' + sgn(c.bonus, c.currency) + '</span></div>';
+  h += '<div class="row"><span>Betting result</span><span>' + sgn(c.result, c.currency) + '</span></div>';
+  if (c.openStakes) h += '<div class="row"><span>Open stakes</span><span>' + money(-c.openStakes, c.currency) + '</span></div>';
+  return h + '</div>';
+}
+function mcards(list) { return '<div class="cards">' + list.map(mcard).join('') + '</div>'; }
+function show(t) {
+  ['books', 'money'].forEach(function (p) {
+    document.getElementById('p-' + p).classList.toggle('hidden', p !== t);
+    document.getElementById('t-' + p).classList.toggle('on', p === t);
+  });
+}
+
 var S = M.summary, h = '';
-h += '<h1>Books</h1><div class="asof">Live from the sheet · opened ' + esc(M.opened) +
+h += '<h1>Books</h1><div class="tabs"><button id="t-books" class="on" onclick="show(\'books\')">Books</button>' +
+  '<button id="t-money" onclick="show(\'money\')">Money</button></div>';
+h += '<div id="p-books"><div class="asof">Live from the sheet · opened ' + esc(M.opened) +
   (M.newestBet ? ' · newest ticket ' + esc(M.newestBet) : '') + (M.newestCheck ? ' · newest balance check ' + esc(M.newestCheck) : '') + '</div>';
 h += '<div class="strip">' +
   stat('Cash in books', money(S.cash, 'PHP')) +
@@ -88,10 +112,26 @@ Object.keys(M.holders).sort().forEach(function (name) {
   h += '<h2>' + esc(name) + '</h2><div class="holder-sum">Cash ' + money(x.summary.cash, 'PHP') + ' · open ' + money(x.summary.openStakes, 'PHP') +
     (x.summary.maxReturn ? ' · max return ' + money(x.summary.maxReturn, 'PHP') : '') + '</div>' + cards(x.cards);
 });
-if (M.hidden.length) {
-  h += '<button onclick="document.getElementById(\'hid\').classList.toggle(\'hidden\')">Show all (' + M.hidden.length + ' inactive, empty)</button>' +
-    '<div id="hid" class="hidden"><h2>Inactive</h2>' + cards(M.hidden) + '</div>';
+if (M.empty.length) {
+  h += '<button onclick="document.getElementById(\'emp\').classList.toggle(\'hidden\')">Show empty (' + M.empty.length + ')</button>' +
+    '<div id="emp" class="hidden"><h2>Empty</h2>' + cards(M.empty) + '</div>';
 }
+h += '</div>';
+
+var Y = M.money, YS = Y.summary;
+h += '<div id="p-money" class="hidden"><div class="asof">Settled bets only · open stakes shown separately</div><div class="strip">' +
+  stat('Deposits', money(YS.deposits, 'PHP'), 'opening + deposits') +
+  stat('Withdrawals', money(YS.withdrawals, 'PHP')) +
+  stat('Betting result', sgn(YS.result, 'PHP'), 'settled only') +
+  stat('Cash in books', money(YS.cash, 'PHP'), 'same as Books page') + '</div>';
+h += '<h2>My books</h2>' + mcards(Y.own);
+if (Y.crypto.length) h += '<h2>Crypto</h2>' + mcards(Y.crypto);
+Object.keys(Y.holders).sort().forEach(function (name) {
+  var x = Y.holders[name], u = x.summary;
+  h += '<h2>' + esc(name) + '</h2><div class="holder-sum">Deposits ' + money(u.deposits, 'PHP') + ' · withdrawals ' + money(u.withdrawals, 'PHP') +
+    ' · cash ' + money(u.cash, 'PHP') + '</div>' + mcards(x.cards);
+});
+h += '</div>';
 document.getElementById('app').innerHTML = h;
 </script>
 </body>
