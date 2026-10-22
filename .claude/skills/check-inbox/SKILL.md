@@ -8,13 +8,23 @@ description: Pick up the tip, bet-slip and balance screenshots Paolo (or Pat/Tis
 Drive `Betting Inbox/Tips` and `/Slips` → `game-tracker/inbox.py` → the usual log-picks / log-bets flow → files moved to `Done`.
 This skill only fetches and routes. The logging rules live in the other two skills: follow them exactly.
 
-## 1. Pull
+## 0. Lock (laptop, phone and clerk runs share one inbox)
 ```
 cd game-tracker   # from the repo root (laptop or cloud)
+PYTHONIOENCODING=utf-8 ../.venv/Scripts/python clerk.py lock "<laptop | phone | clerk>"
+```
+Exit 2 / `BUSY` = another check started under 30 minutes ago: say so in one line and stop (clerk: stop silently).
+**Always** `clerk.py unlock` when you finish, also after an error or an empty inbox.
+
+## 1. Pull
+```
 PYTHONIOENCODING=utf-8 ../.venv/Scripts/python inbox.py pull
+PYTHONIOENCODING=utf-8 ../.venv/Scripts/python clerk.py waiting
 ```
 Downloads every file still in Tips/Slips to `game-tracker/out/inbox/` (git-ignored) and prints its Drive id.
-Read-only on Drive. Empty inbox → say so in one line and stop.
+Read-only on Drive. Empty inbox → say so in one line, unlock and stop.
+`clerk.py waiting` lists files already asked about in an earlier run (Clerk tab). **Clerk mode: skip them.**
+With Paolo present (laptop/phone): include them, he can answer now; `clerk.py clear <ids>` once logged.
 
 ## 2. Read and route
 Open each downloaded image with Read.
@@ -43,6 +53,23 @@ PYTHONIOENCODING=utf-8 ../.venv/Scripts/python inbox.py done <id> <id> ...      
 PYTHONIOENCODING=utf-8 ../.venv/Scripts/python inbox.py done <id> <id> ... --apply
 ```
 Files with open questions stay in the inbox for the next check. Finish with the log-bets report (positions) if slips were logged.
+
+## 5. Log the run, unlock
+```
+PYTHONIOENCODING=utf-8 ../.venv/Scripts/python clerk.py log --by "<laptop | phone | clerk>" --seen <n files> --logged "<IDs written>"     --waiting "<file: question; ...>" --ids <ids of files left waiting, comma-separated> --link <run link or blank>
+PYTHONIOENCODING=utf-8 ../.venv/Scripts/python clerk.py unlock
+```
+No row for an empty inbox. Run link in a cloud session: `echo "https://claude.ai/code/${CLAUDE_CODE_REMOTE_SESSION_ID/cse_/session_}"`.
+
+## Clerk mode (the hourly scheduled run, SPEC-inbox-clerk.md)
+Paolo is not watching. Everything above applies, plus:
+- The run's prompt is **not** his yes. Only Write-rule clean items go in; everything else waits.
+- **Push** (PushNotification, status proactive, one line < 200 chars, no markdown) **only when something waits**,
+  leading with what he must answer: `2 need you: msw 'Corner Handicap - Match' = corners handicap?; Tish slip cut off at the top`.
+  All clean or empty inbox → no push.
+- **08:07 run:** also `clerk.py remind`; for any `REMIND` ids push one line: `Still waiting since yesterday: <short list>`.
+- **If he answers in the run:** `clerk.py lock "clerk"` again, finish those items (dry run → apply), move the files to Done, `clerk.py clear <ids>`, unlock.
+- Never: invent a slip number/time/result, add a Vocab entry, account or Ledger line without his answer, edit code or commit, settle results.
 
 ## Notes
 - Folder ids are in `inbox.py`. The bot (`sheet-bot@betting-511008`) has Editor on Betting Inbox only.
