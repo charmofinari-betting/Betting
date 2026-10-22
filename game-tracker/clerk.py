@@ -7,7 +7,8 @@ Usage:
   python clerk.py waiting                        files waiting for Paolo's answer (Drive ids), with age
   python clerk.py log --by "<who>" --seen N [--logged "S-0270, T-1650"] [--waiting "<file>: <question>; ..."]
                       [--ids id1,id2] [--link <run url>]
-  python clerk.py clear <id>...                  answered: drop these ids from the waiting list
+  python clerk.py clear <id>...                  answered: drop these ids from the waiting list (done --apply does it too)
+  python clerk.py logged <row> "<IDs>"           a follow-up in the same run: add IDs to that run's row
   python clerk.py remind                         ids waiting > 24 h and not yet reminded; marks them reminded
 
 Layout: A1:C1 = Lock | <who> | <since PHT>; row 3 = header; one row per run from row 4.
@@ -62,6 +63,27 @@ def due_reminders(rows, at):
                   if not reminded and run_at and at - run_at >= REMIND_AFTER)
 
 
+def clear_updates(rows, ids):
+    """{sheet row: new Waiting-file-ids value} removing ids from every row that lists them."""
+    out = {}
+    for n, r in enumerate(rows, start=FIRST):
+        cur = [i.strip() for i in (list(r) + [""] * 6)[5].split(",") if i.strip()]
+        if any(i in ids for i in cur):
+            out[n] = ", ".join(i for i in cur if i not in ids)
+    return out
+
+
+def clear(ids, ws=None):
+    """Drop ids from the waiting list (all rows). Called by `inbox.py done --apply` too."""
+    if not ids:
+        return
+    ws = ws or _ws(True)
+    ups = clear_updates(ws.get_all_values()[FIRST - 1:], set(ids))
+    for row, val in sorted(ups.items()):
+        ws.update(range_name=f"F{row}", values=[[val]], value_input_option="RAW")
+    print(f"Clerk: cleared from waiting in rows {', '.join(map(str, sorted(ups)))}" if ups else "Clerk: nothing waiting to clear")
+
+
 def _ws(write=False):
     return open_book(write).worksheet(TAB)
 
@@ -111,16 +133,13 @@ def main(argv):
         ws.update(range_name=f"A{n}", values=[row], value_input_option="RAW")
         print(f"logged in {TAB} row {n}")
     elif cmd == "clear":
-        ids = set(argv[1:])
+        clear(set(argv[1:]))
+    elif cmd == "logged":
+        row, ids = int(argv[1]), argv[2]
         ws = _ws(True)
-        rows = ws.get_all_values()[FIRST - 1:]
-        hits = {fid: v for fid, v in waiting(rows).items() if fid in ids}
-        for fid in ids - set(hits):
-            print(f"SKIP {fid}: not waiting")
-        for row in sorted({v[0] for v in hits.values()}):
-            cur = [i.strip() for i in rows[row - FIRST][5].split(",") if i.strip()]
-            ws.update(range_name=f"F{row}", values=[[", ".join(i for i in cur if i not in ids)]], value_input_option="RAW")
-            print(f"cleared row {row}: {', '.join(i for i in cur if i in ids)}")
+        cur = ws.acell(f"D{row}").value or ""
+        ws.update(range_name=f"D{row}", values=[[", ".join(x for x in (cur, ids) if x)]], value_input_option="RAW")
+        print(f"Clerk row {row} Logged: {', '.join(x for x in (cur, ids) if x)}")
     elif cmd == "remind":
         ws = _ws(True)
         rows = ws.get_all_values()[FIRST - 1:]

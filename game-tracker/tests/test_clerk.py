@@ -1,7 +1,7 @@
 import unittest
 from datetime import datetime
 
-from clerk import due_reminders, lock_state, waiting
+from clerk import clear_updates, due_reminders, lock_state, waiting
 
 AT = datetime(2026, 10, 22, 18, 7)
 
@@ -27,6 +27,10 @@ class WaitingTest(unittest.TestCase):
         w = waiting(self.ROWS)
         self.assertEqual(sorted(w), ["idA", "idB", "idC", "idD"])
         self.assertEqual(w["idC"][0], 5)
+
+    def test_clear_hits_every_row(self):
+        rows = [["", "", "", "", "", "idA, idB"], ["", "", "", "", "", "idA"], ["", "", "", "", "", "idC"]]
+        self.assertEqual(clear_updates(rows, {"idA"}), {4: "idB", 5: ""})
 
     def test_reminders_after_a_day_once(self):
         self.assertEqual(due_reminders(self.ROWS, AT), ["idA", "idB"])

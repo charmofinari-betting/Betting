@@ -68,7 +68,7 @@ Paolo is not watching. Everything above applies, plus:
   leading with what he must answer: `2 need you: msw 'Corner Handicap - Match' = corners handicap?; Tish slip cut off at the top`.
   All clean or empty inbox → no push.
 - **08:07 run:** also `clerk.py remind`; for any `REMIND` ids push one line: `Still waiting since yesterday: <short list>`.
-- **If he answers in the run:** `clerk.py lock "clerk"` again, finish those items (dry run → apply), move the files to Done, `clerk.py clear <ids>`, unlock.
+- **If he answers in the run:** `clerk.py lock "clerk"` again, finish those items (dry run → apply), move the files to Done (`inbox.py done ... --apply` also clears them from the waiting list), add what you wrote to **the same** row with `clerk.py logged <row> "<IDs>"` (no new log row), unlock. A new question in the same run: answer it in the session; no new push, he is already there.
 - Never: invent a slip number/time/result, add a Vocab entry, account or Ledger line without his answer, edit code or commit, settle results.
 
 ## Notes

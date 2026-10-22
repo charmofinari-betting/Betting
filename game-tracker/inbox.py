@@ -194,6 +194,9 @@ def main(argv):
                 r.raise_for_status()
         if move and not apply:
             print("Dry run. Re-run with --apply to move.")
+        if move and apply:
+            from clerk import clear
+            clear({f["id"] for f in move})
     else:
         sys.exit(__doc__)
 
