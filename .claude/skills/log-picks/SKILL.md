@@ -33,17 +33,18 @@ Show Paolo: how many are new / already logged / problems, the new rows as a shor
 (match, selection, odds, kickoff), and every PROBLEM and CHECK line.
 
 ## 3. Resolve problems (never guess)
-- **Unknown league:** if it's a new spelling of a league already in `vocab.json` → propose a `league_aliases` entry. If it's really new → ask Paolo the sport, then add it to `league_sport`. Also tennis: if the Country column is a tour not in `tennis_tours`, ask before adding it.
+- **Unknown league:** if it's a new spelling of a league already in the word list → propose a `league alias`. If it's really new → ask Paolo the sport, then add a `league sport`. Also tennis: if the Country column is a tour not in the list, ask before adding a `tennis tour`.
+- The word list is the **Vocab tab** in the private book (`vocab.py`; `vocab.json` is gone). Add an entry, dry run first: `../.venv/Scripts/python vocab.py add "league alias" "<screenshot spelling>" "<sheet spelling>" --apply` (kinds: league sport, league alias, team alias, api team alias, tennis tour).
 - **CHECK "new team looks like existing":** ask Paolo if it's the same team; if yes, add a `team_aliases` entry (screenshot spelling → sheet spelling).
 - **Unrecognised selection:** don't map it by hand. Tell Paolo; a new market type needs a `parse.py` change with tests.
-- Show any `vocab.json` edit in the dry run summary, then run the dry run again until clean.
+- Show any word-list addition in the summary, then run the dry run again until clean.
 
 ## 4. Apply (Write rule in CLAUDE.md)
 Clean dry run (no PROBLEM / CHECK, no vocab edit) → apply straight away; otherwise after Paolo answers step 3.
 ```
 PYTHONIOENCODING=utf-8 ../.venv/Scripts/python log_picks.py <tsv> --apply
 ```
-Report the IDs and sheet rows written. Commit `vocab.json` if it changed.
+Report the IDs and sheet rows written.
 
 ## 5. Then sync kickoffs
 Run `sync.py` (dry run) right after logging, and `--apply` straight away if clean (else show Paolo the CHECK / not-found lines first):

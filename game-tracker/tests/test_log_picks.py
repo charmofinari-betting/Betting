@@ -84,7 +84,7 @@ class PlanTest(unittest.TestCase):
         self.assertIn("IFK Norrköping", p.warnings[0][1])
 
     def test_sample_screenshots_parse_cleanly(self):
-        vocab = json.loads((Path(__file__).parents[1] / "vocab.json").read_text(encoding="utf-8"))
+        vocab = json.loads((FIX / "vocab.json").read_text(encoding="utf-8"))
         p = plan(read_tsv(FIX / "sample_screenshots.tsv"), [], vocab)
         self.assertEqual(p.problems, [])
         self.assertEqual(len(p.new), 35)

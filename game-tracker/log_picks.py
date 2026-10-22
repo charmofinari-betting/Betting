@@ -6,8 +6,8 @@ picks.tsv: one pick per line, tab-separated, columns exactly as the tips table s
     Country  League  Event  Market  Sent Odds  [Kickoff]
 Kickoff is optional ("YYYY-MM-DD HH:MM", PHT), e.g. for tennis, which Paolo fills himself.
 
-Rows are checked against vocab.json (leagues, aliases) and parse.py (markets). Any problem
-blocks --apply; fix vocab.json (or the TSV) and run again.
+Rows are checked against the word list (Vocab tab, see vocab.py) and parse.py (markets). Any problem
+blocks --apply; add the missing entry with `vocab.py add` (or fix the TSV) and run again.
 """
 import difflib
 import json
@@ -21,7 +21,6 @@ from pathlib import Path
 from parse import ParseError, parse_selection
 
 HERE = Path(__file__).resolve().parent
-VOCAB = HERE / "vocab.json"
 SHEETS = {"live": "1Q4icsCr6c9378cOfu_tyJkBVh9gx3kz5Iu9YUdgZFeA",
           "staging": "128WyTtzzKIxQd7X7rOQZgwKXsemYvzMt6kldpjlyhLs"}
 SHEETS_EPOCH = datetime(1899, 12, 30)
@@ -150,7 +149,8 @@ def main():
     sh = client(READWRITE if apply else READONLY).open_by_key(key)
     ws = sh.worksheet("Sheet1")
     existing = ws.get_all_values()[2:]
-    vocab = json.loads(VOCAB.read_text(encoding="utf-8"))
+    from vocab import load
+    vocab = load()
     result = plan(read_tsv(path), existing, vocab)
 
     print(f"[{sh.title}] {'APPLY' if apply else 'dry run'}: {len(result.new)} new, "

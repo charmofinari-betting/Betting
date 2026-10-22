@@ -5,7 +5,7 @@ Usage: python sync.py [--apply] [--staging] [--accept T-0123,T-0124]
 Free plan: only yesterday, today and tomorrow (PHT) are available, so run this daily.
 - 'sure' matches are written on --apply.
 - 'check' matches are listed; after Paolo confirms, pass their IDs with --accept and the
-  team names are saved to vocab.json (api_team_aliases) so they match by themselves next time.
+  team names are saved to the Vocab tab (api team alias) so they match by themselves next time.
 Tennis is skipped (not on api-sports; Paolo fills it).
 """
 import json
@@ -15,7 +15,7 @@ from datetime import datetime, timedelta
 from pathlib import Path
 
 from fixtures import CACHE, PHT, SHEETS_EPOCH, DateNotAvailable, fetch, games, match
-from log_picks import SHEETS, VOCAB
+from log_picks import SHEETS
 from parse import Selection
 from settle import settle
 
@@ -76,8 +76,9 @@ def main():
     except Exception as e:  # offline or Drive refused: carry on with the local cache
         pulled, status = [], f"Drive results pull failed ({e}); using the local cache"
     saved = {s: cached_days(s) for s in API_SPORTS}
-    vocab = json.loads(VOCAB.read_text(encoding="utf-8"))
-    aliases = vocab.setdefault("api_team_aliases", {})
+    import vocab as vocab_mod
+    aliases = vocab_mod.load().setdefault("api_team_aliases", {})
+    new_aliases = []
 
     from inspect_sheet import READONLY, READWRITE, client
     sh = client(READWRITE if apply else READONLY).open_by_key(key)
@@ -152,7 +153,10 @@ def main():
         g, conf = match(sport, home, away, pool, ko_serial, aliases)
         ids = ", ".join(r[COL["id"]] for _, r in group)
         if conf == "check" and any(r[COL["id"]] in accept for _, r in group):
-            aliases[home], aliases[away] = g.home, g.away
+            for name, api_name in ((home, g.home), (away, g.away)):
+                if aliases.get(name) != api_name:
+                    aliases[name] = api_name
+                    new_aliases.append(["api team alias", name, api_name, ""])
             conf = "sure"
         if conf == "sure":
             sure += 1
@@ -227,7 +231,9 @@ def main():
     n_cells = len(updates)
     if updates:
         ws.batch_update(updates, value_input_option="RAW")
-    VOCAB.write_text(json.dumps(vocab, ensure_ascii=False, indent=2), encoding="utf-8")
+    if new_aliases:
+        row = vocab_mod.append(vocab_mod.open_book(write=True), new_aliases, by="sync --accept")
+        print(f"  Vocab: {len(new_aliases)} api team aliases added from row {row}")
     print(f"  written: {sure} fixtures found, {settled} picks settled ({n_cells} cells)")
 
 

@@ -13,6 +13,9 @@ slips.json: a list of tickets, transcribed exactly from the book's slip screen:
 - "opening": true for tickets already placed when the book started (8 Oct 2026): adds an
   "Opening balance" ledger line equal to the stake, because the book's cash already excludes it.
 - "own": true after Paolo confirms a leg is his own pick (no tip). "tip": "T-0123" forces a link.
+- "sel": {"market", "period", "side", "line"}: what the leg means (SPEC-slip-vocab.md). Checked by
+  slip_check against the slip text and the Vocab tab's book wordings; the old parser is a second opinion
+  until about 5 Nov 2026. Optional for own picks the tips have no market for (draws, props).
 Each leg is matched to a tip in the shared sheet by teams + kickoff + market/side; a line that
 moved (e.g. Over 170.5 vs tips at 169.5) is linked to the nearest tip line and flagged.
 """
@@ -220,15 +223,9 @@ def tip_rows(sheet1_values):
     return out
 
 
-def team_aliases():
-    """vocab.json team_aliases: a book/screenshot spelling -> the tips sheet's spelling (e.g. Ekenas -> EIF)."""
-    from log_picks import VOCAB
-    return json.loads(VOCAB.read_text(encoding="utf-8")).get("team_aliases", {})
-
-
 def find_tip(leg_sel, sport, home, away, kickoff, tips, aliases=None):
     """(tip, note) for the best tip on the same match and market/side; note says if the line moved."""
-    aliases = team_aliases() if aliases is None else aliases
+    aliases = aliases or {}  # Vocab team aliases: book spelling -> tips sheet spelling (e.g. Ekenas -> EIF)
     home, away = aliases.get(home, home), aliases.get(away, away)
     same_match = [t for t in tips if t.sport == sport
                   and min(name_score(home, t.home), name_score(away, t.away)) >= 0.8
@@ -248,7 +245,7 @@ def find_tip(leg_sel, sport, home, away, kickoff, tips, aliases=None):
                               for t in same_match) if same_match else "match not in the tips")
 
 
-def slip_offset(book, slip, tips):
+def slip_offset(book, slip, tips, aliases=None):
     """(UTC offset of this slip's times, reason). Offset None = can't tell: ask Paolo, never guess.
 
     For books that flip zones, each leg whose match has a known PHT kickoff (its tip's) votes:
@@ -266,11 +263,15 @@ def slip_offset(book, slip, tips):
         if leg.get("tip"):
             tip = next((t for t in tips if t.id == leg["tip"]), None)
         else:
-            try:
-                sel = parse_slip_market(leg["market"], leg["sport"], leg["home"], leg["away"])
-            except SlipParseError:
-                continue
-            tip, _ = find_tip(sel, leg["sport"], leg["home"], leg["away"], raw, tips)
+            if leg.get("sel"):
+                from slip_check import to_selection
+                sel = to_selection(leg["sel"])
+            else:
+                try:
+                    sel = parse_slip_market(leg["market"], leg["sport"], leg["home"], leg["away"])
+                except SlipParseError:
+                    continue
+            tip, _ = find_tip(sel, leg["sport"], leg["home"], leg["away"], raw, tips, aliases)
         if not tip or not tip.kickoff:
             continue
         gap = (tip.kickoff - raw).total_seconds() / 3600   # = PHT offset - slip offset
@@ -295,8 +296,25 @@ class Plan:
     checks: list = field(default_factory=list)
 
 
-def plan(slips, tips, existing_slip_nos, next_n, fx, accounts):
+def leg_selection(leg, book, wordings):
+    """(Selection or None, problems). wordings = the Vocab tab's slip wordings: checks the transcribed
+    "sel" (slip_check). wordings None = the old parser alone (tests, until it is retired)."""
+    if wordings is None:
+        try:
+            return parse_slip_market(leg["market"], leg["sport"], leg["home"], leg["away"]), []
+        except SlipParseError as e:
+            return None, [str(e)]
+    if leg.get("own") and not leg.get("sel"):
+        return None, []
+    from slip_check import check_leg
+    return check_leg(leg, book, wordings, parse_slip_market)
+
+
+def plan(slips, tips, existing_slip_nos, next_n, fx, accounts, vocab=None):
+    """vocab: vocab.load() (live runs). None = no aliases and the old parser alone (tests)."""
     out = Plan()
+    wordings = vocab["slip_wordings"] if vocab else None
+    aliases = vocab.get("team_aliases", {}) if vocab else {}
     for s in slips:
         no = str(s["book_slip_no"])
         if no in existing_slip_nos:
@@ -309,7 +327,7 @@ def plan(slips, tips, existing_slip_nos, next_n, fx, accounts):
         book, cur = accounts[acct]
         sid = f"S-{next_n:04d}"
         next_n += 1
-        offset, why = slip_offset(book, s, tips)
+        offset, why = slip_offset(book, s, tips, aliases)
         if offset is None:
             out.problems.append(f"{sid}: can't tell this {book} slip's time zone ({why}). "
                                 f"Set \"tz\": 7 (UTC+7) or 8 (PHT) on the slip")
@@ -331,19 +349,16 @@ def plan(slips, tips, existing_slip_nos, next_n, fx, accounts):
         for n, leg in enumerate(s["legs"], start=1):
             acc_odds *= leg["odds"]
             ko = to_pht(leg["kickoff"], book, offset) if leg.get("kickoff") else None
-            try:
-                sel = parse_slip_market(leg["market"], leg["sport"], leg["home"], leg["away"])
-            except SlipParseError as e:
-                sel = None
-                if not leg.get("own"):
-                    out.problems.append(f"{sid} leg {n}: {e}")
+            sel, probs = leg_selection(leg, book, wordings)
+            if wordings is not None or not leg.get("own"):
+                out.problems += [f"{sid} leg {n} ({leg['market']}): {e}" for e in probs]
             tip, note = (None, "own pick") if leg.get("own") else (None, "")
             if sel and not leg.get("own"):
                 if leg.get("tip"):
                     tip = next((t for t in tips if t.id == leg["tip"]), None)
                     note = "" if tip else f"tip {leg['tip']} not found"
                 else:
-                    tip, note = find_tip(sel, leg["sport"], leg["home"], leg["away"], ko, tips)
+                    tip, note = find_tip(sel, leg["sport"], leg["home"], leg["away"], ko, tips, aliases)
             if not tip and not leg.get("own"):
                 out.problems.append(f"{sid} leg {n} {leg['home']} vs {leg['away']} {leg['market']}: {note}. "
                                     f"Own pick? (set \"own\": true) or name the tip (\"tip\": \"T-....\")")
@@ -399,7 +414,8 @@ def main():
     fx = {r[0]: (float(r[1]) if len(r) > 1 and r[1] else None) for r in book.worksheet("FX").get_all_values()[1:]}
     accounts = {r[0]: (r[1], r[3]) for r in book.worksheet("Accounts").get_all_values()[1:] if r and r[0]}
     slips = json.load(open(path, encoding="utf-8"))
-    p = plan(slips, tips, existing, next_n, fx, accounts)
+    from vocab import load
+    p = plan(slips, tips, existing, next_n, fx, accounts, load(book))
 
     print(f"[{book.title}] {'APPLY' if apply else 'dry run'}: {len(p.bets)} tickets, {len(p.legs)} legs, "
           f"{len(p.ledger)} ledger lines, {len(p.problems)} problems, {len(p.checks)} checks")

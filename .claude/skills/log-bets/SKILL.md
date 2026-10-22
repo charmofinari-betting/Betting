@@ -16,8 +16,10 @@ One object per ticket, values exactly as the slip shows them:
  "stake": 1000, "total_odds": 3.532, "potential": 3531.9, "opening": false,
  "legs": [{"sport": "Basketball", "home": "Aris Thessaloniki", "away": "Burgos",
            "market": "Handicap 1 (-8.5): Aris Thessaloniki - Burgos (Including Overtime)",
+           "sel": {"market": "Handicap", "period": "FT", "side": "Home", "line": -8.5},
            "odds": 1.83, "kickoff": "2026-10-08 00:00", "status": "Win"}]}
 ```
+- **sel** = what the leg means, in the tips' terms (`parse.py` MARKETS / PERIODS; side Home/Away/Over/Under/Yes/No; line or null). Conventions: football 1X2 / winner = Handicap -0.5; double chance = Handicap +0.5; draw no bet = Handicap 0; a split line "2.5,3" = 2.75; Moneyline for non-football winners; a named team's cards/total = "Home team cards", "Away team total", ... The script checks it against the slip text and the Vocab tab's book wordings. Own picks with no tips market (draws, correct score, props): leave sel out.
 - Times exactly as the book shows them; never shift them by hand. **1xbet flips between UTC+7 and PHT**: the script decides per slip from the tips' known kickoffs and prints "1xbet times read as UTC+…". If it can't tell (own picks only, or kickoffs disagree) it raises a PROBLEM: check the phone clock in the screenshot's status bar (PHT) against a just-placed slip, or ask Paolo, then set `"tz": 7` or `"tz": 8` on the slip.
 - **account**: the Accounts tab name (e.g. "1xbet PHP", "1xbet USDT"). Use the stake's currency on the slip to pick it. Ask if unsure.
 - **sport** from the slip's icon / league line. **market**: the full market line.
@@ -37,7 +39,9 @@ Show Paolo each ticket with its legs → tip IDs, drift %, and every CHECK / PRO
 - **No tip found:** ask Paolo whether it's his own pick (set `"own": true`) or which tip it was (`"tip": "T-...."`).
 - **CHECK line moved:** confirm with Paolo it's the right tip (he took a different line than tipped).
 - **Odds or potential mismatch:** re-read the screenshot; it's almost always a transcription slip.
-- **Unrecognised market:** don't force it; tell Paolo and extend `parse_slip_market` with a test.
+- **NEW WORDING:** a book wording the word list doesn't know yet. Ask Paolo what it means (say what you think), then add it, dry run first: `../.venv/Scripts/python vocab.py add "slip wording" "<key exactly as printed>" "<Market> <Period>" ["sport=Football, line=-0.5" | "split"] --apply`. A winner/1X2 wording needs two rows: `sport=Football, line=-0.5` with "Handicap FT", and one with "Moneyline FT". Never guess a meaning to make it clean.
+- **"old parser reads ..."** (until ~5 Nov 2026): the old parser and your sel disagree. Re-read the slip; if your sel is right, tell Paolo the old parser is wrong for this wording (it is being retired, don't fix it).
+- **"side ... but the text ..." / "line ... not on the slip":** almost always a transcription slip: re-read.
 
 ## 4. Apply (Write rule in CLAUDE.md)
 Clean dry run (no CHECK / PROBLEM, every leg linked, odds and potential tie out) → re-run with `--apply` straight away. Anything from step 3 → apply only after Paolo answers. Report ticket IDs and rows written either way. Advisory, not policing: show drift plainly when large,
