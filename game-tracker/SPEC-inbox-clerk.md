@@ -39,3 +39,18 @@ Cron (UTC): `7 0-16 * * *`. Repo `charmofinari-betting/Betting`, environment `be
 2. check-inbox skill: lock + waiting list + a "clerk mode" section (push, log row).
 3. The scheduled task with a self-contained prompt; one supervised test run with a real screenshot.
 Rough size: half a day.
+
+## Slip numbers (23 Oct 2026)
+`slip_no.py` learns each book's number format from the Bets tab (bet88 19 digits, Solaire 18, 1xbet 11,
+747-live 10, msw.ph `XX1-G6F-SRW-CHS`); a number that doesn't fit is a PROBLEM. Books with < 5 numbered
+slips aren't checked but still count for guessing. `"account": "?"` → the dry run lists the accounts and
+the books the number fits, so the clerk asks "bet88?". No number on the screenshot (msw.ph shows it only
+right after placing): `"book_slip_no": null` → own key `<account>-<type>-<MMDD>-<HHMM>` (Paolo's call).
+
+## Weekly QA audit (first 2 weeks: Mon 26 Oct and Mon 2 Nov 2026, 09:00 PHT)
+Routine "Clerk audit", Opus (a different reader than the clerk's Sonnet), read-only except one Clerk row.
+`audit.py sample` picks 10 random clerk-logged items from the last 7 days and prints their sheet fields
+plus the Done screenshots that could hold them; `audit.py pull` downloads those. The run compares field by
+field (slip №, placed, account, stake, odds, each leg's match / market / side / line / odds; tips: match,
+market, line, odds, kickoff), logs one line `clerk.py log --by audit --seen N --logged "<result>"`, and
+pushes it. Error rate above zero → Paolo decides: a second read for slips, or the clerk on Opus.
