@@ -29,8 +29,12 @@ class WaitingTest(unittest.TestCase):
         self.assertEqual(w["idC"][0], 5)
 
     def test_clear_hits_every_row(self):
-        rows = [["", "", "", "", "", "idA, idB"], ["", "", "", "", "", "idA"], ["", "", "", "", "", "idC"]]
-        self.assertEqual(clear_updates(rows, {"idA"}), {4: "idB", 5: ""})
+        rows = [["", "", "", "", "q1", "idA, idB"], ["", "", "", "", "q2", "idA"], ["", "", "", "", "", "idC"]]
+        self.assertEqual(clear_updates(rows, {"idA"}), {4: ("idB", None), 5: ("", "answered: q2")})
+
+    def test_answered_marked_once(self):
+        rows = [["", "", "", "", "answered: q", "idA"]]
+        self.assertEqual(clear_updates(rows, {"idA"}), {4: ("", None)})
 
     def test_reminders_after_a_day_once(self):
         self.assertEqual(due_reminders(self.ROWS, AT), ["idA", "idB"])

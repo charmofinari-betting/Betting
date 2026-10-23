@@ -8,6 +8,9 @@ slips.json: a list of tickets, transcribed exactly from the book's slip screen:
    "legs": [{"sport": "Basketball", "home": "Aris Thessaloniki", "away": "Burgos",
              "market": "Handicap 1 (-8.5)", "odds": 1.83, "kickoff": "2026-10-08 00:00",
              "status": "Win", "own": false, "tip": null}]}
+- book_slip_no: null when the screenshot shows none: an own key is made (slip_no.own_key).
+  Numbers are checked against the book's usual format (slip_no.py); an unknown account lists the
+  accounts and the books whose format the number fits.
 - placed / kickoff: as the book shows them (book-local time; converted with BOOK_UTC_OFFSET).
 - "boost": 1.15 for a combo-boost multiplier on the slip (total odds = leg product × boost).
 - "opening": true for tickets already placed when the book started (8 Oct 2026): adds an
@@ -310,21 +313,34 @@ def leg_selection(leg, book, wordings):
     return check_leg(leg, book, wordings, parse_slip_market)
 
 
-def plan(slips, tips, existing_slip_nos, next_n, fx, accounts, vocab=None):
-    """vocab: vocab.load() (live runs). None = no aliases and the old parser alone (tests)."""
+def plan(slips, tips, existing_slip_nos, next_n, fx, accounts, vocab=None, formats=None):
+    """vocab: vocab.load() (live runs). None = no aliases and the old parser alone (tests).
+    formats: slip_no.learn() over the Bets tab: checks slip numbers and guesses the book. None = no checks."""
+    from slip_no import check, guess, own_key
     out = Plan()
     wordings = vocab["slip_wordings"] if vocab else None
     aliases = vocab.get("team_aliases", {}) if vocab else {}
     for s in slips:
-        no = str(s["book_slip_no"])
+        acct = s["account"]
+        n_legs = len(s["legs"])
+        system = s.get("system")  # "3/5": every 3-leg combination of 5 legs, stake split evenly
+        ttype = f"System {system}" if system else TYPES.get(n_legs, f"{n_legs}-fold")
+        no = str(s.get("book_slip_no") or "").strip()
+        keyed = not no  # no number on the screenshot: our own key (Paolo's call, 23 Oct 2026)
+        if keyed:
+            no = own_key(acct, ttype, s["placed"])
         if no in existing_slip_nos:
             out.lines.append(f"skip   slip № {no}: already logged as {existing_slip_nos[no]}")
             continue
-        acct = s["account"]
         if acct not in accounts:
-            out.problems.append(f"slip № {no}: unknown account {acct!r}")
+            fits = guess(no, formats) if formats and not keyed else []
+            hint = "; ".join(f"{b} = {', '.join(a for a, (bk, _) in accounts.items() if bk == b)}" for b in fits)
+            out.problems.append(f"slip № {no}: unknown account {acct!r}. Accounts: {', '.join(accounts)}"
+                                + (f". The slip number fits {hint}" if hint else ""))
             continue
         book, cur = accounts[acct]
+        if formats and not keyed and (bad := check(no, book, formats)):
+            out.problems.append(bad)
         sid = f"S-{next_n:04d}"
         next_n += 1
         offset, why = slip_offset(book, s, tips, aliases)
@@ -333,17 +349,14 @@ def plan(slips, tips, existing_slip_nos, next_n, fx, accounts, vocab=None):
                                 f"Set \"tz\": 7 (UTC+7) or 8 (PHT) on the slip")
         placed = to_pht(s["placed"], book, offset)
         acc_odds = 1.0
-        n_legs = len(s["legs"])
-        system = s.get("system")  # "3/5": every 3-leg combination of 5 legs, stake split evenly
         if system:
             k, n_sys = (int(v) for v in system.split("/"))
             if n_sys != n_legs:
                 out.problems.append(f"{sid}: system {system} but {n_legs} legs transcribed")
-            ttype = f"System {system}"
-        else:
-            ttype = TYPES.get(n_legs, f"{n_legs}-fold")
         out.lines.append(f"ticket {sid} (slip № {no}) {acct} {ttype} stake {s['stake']:,} {cur}"
                          f"{'' if system else ' @ ' + str(s['total_odds'])}  placed {placed:%a %d %b %H:%M} PHT")
+        if keyed:
+            out.lines.append(f"   no slip number on the screenshot: own key {no}")
         if book in FLIP_OFFSETS and offset is not None:
             out.lines.append(f"   {book} times read as UTC+{offset}{' (PHT)' if offset == PHT_OFFSET else ''}: {why}")
         for n, leg in enumerate(s["legs"], start=1):
@@ -415,7 +428,8 @@ def main():
     accounts = {r[0]: (r[1], r[3]) for r in book.worksheet("Accounts").get_all_values()[1:] if r and r[0]}
     slips = json.load(open(path, encoding="utf-8"))
     from vocab import load
-    p = plan(slips, tips, existing, next_n, fx, accounts, load(book))
+    from slip_no import learn
+    p = plan(slips, tips, existing, next_n, fx, accounts, load(book), learn(bets[1:], accounts))
 
     print(f"[{book.title}] {'APPLY' if apply else 'dry run'}: {len(p.bets)} tickets, {len(p.legs)} legs, "
           f"{len(p.ledger)} ledger lines, {len(p.problems)} problems, {len(p.checks)} checks")

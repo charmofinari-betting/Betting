@@ -120,6 +120,27 @@ class PlanTest(unittest.TestCase):
         self.assertEqual(p.legs[2][3], "Yes")
 
 
+    def test_slip_number_checks_and_own_key(self):
+        from slip_no import learn
+        accts = dict(ACCOUNTS, bet88=("bet88", "PHP"), **{"bet88 Tish": ("bet88", "PHP")})
+        formats = learn([["S-1", "", "bet88"] + [""] * 16 + ["2719626337345221478"]] * 5
+                        + [["S-2", "", "1xbet PHP"] + [""] * 16 + ["88399886893"]] * 5, accts)
+        p = plan([dict(SLIP, book_slip_no="88399886893")], TIPS, {}, 1, {"PHP": 1.0}, accts, formats=formats)
+        self.assertEqual(p.problems, [])
+        p = plan([dict(SLIP, book_slip_no="8839988689")], TIPS, {}, 1, {"PHP": 1.0}, accts, formats=formats)
+        self.assertTrue(any("doesn't look like a 1xbet number" in x for x in p.problems))
+        p = plan([dict(SLIP, book_slip_no="2724974928796459412", account="?")], TIPS, {}, 1, {"PHP": 1.0}, accts,
+                 formats=formats)
+        self.assertIn("The slip number fits bet88 = bet88, bet88 Tish", p.problems[0])
+        self.assertIn("Accounts: 1xbet PHP, bet88, bet88 Tish", p.problems[0])
+        p = plan([dict(SLIP, book_slip_no=None)], TIPS, {}, 1, {"PHP": 1.0}, accts, formats=formats)
+        self.assertEqual(p.problems, [])
+        self.assertEqual(p.bets[0][10], "1xbet-php-double-1007-1834")
+        self.assertTrue(any("own key 1xbet-php-double-1007-1834" in l for l in p.lines))
+        p = plan([dict(SLIP, book_slip_no=None)], TIPS, {"1xbet-php-double-1007-1834": "S-0009"}, 1, {"PHP": 1.0}, accts)
+        self.assertEqual(p.bets, [])
+
+
 def _with_ko(*kos):
     return dict(SLIP, legs=[dict(l, kickoff=k) for l, k in zip(SLIP["legs"], kos)])
 

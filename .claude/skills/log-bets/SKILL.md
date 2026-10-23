@@ -21,10 +21,11 @@ One object per ticket, values exactly as the slip shows them:
 ```
 - **sel** = what the leg means, in the tips' terms (`parse.py` MARKETS / PERIODS; side Home/Away/Over/Under/Yes/No; line or null). Conventions: football 1X2 / winner = Handicap -0.5; double chance = Handicap +0.5; draw no bet = Handicap 0; a split line "2.5,3" = 2.75; Moneyline for non-football winners; a named team's cards/total = "Home team cards", "Away team total", ... The script checks it against the slip text and the Vocab tab's book wordings. Own picks with no tips market (draws, correct score, props): leave sel out.
 - Times exactly as the book shows them; never shift them by hand. **1xbet flips between UTC+7 and PHT**: the script decides per slip from the tips' known kickoffs and prints "1xbet times read as UTC+…". If it can't tell (own picks only, or kickoffs disagree) it raises a PROBLEM: check the phone clock in the screenshot's status bar (PHT) against a just-placed slip, or ask Paolo, then set `"tz": 7` or `"tz": 8` on the slip.
-- **account**: the Accounts tab name (e.g. "1xbet PHP", "1xbet USDT"). Use the stake's currency on the slip to pick it. Ask if unsure.
+- **account**: the Accounts tab name (e.g. "1xbet PHP", "1xbet USDT"). Use the stake's currency on the slip to pick it. **Never guess an account from the code or docs, never make one up.** No book name on the slip, or unsure: set `"account": "?"`; the dry run's PROBLEM lists the real accounts and the books whose slip-number format fits ("fits bet88 = bet88, bet88 Tish, bet88 Bret"). Ask Paolo with that guess ("bet88?"), not an open question.
 - **sport** from the slip's icon / league line. **market**: the full market line.
 - **status**: the leg status shown (Unsettled / Win / Loss / Return...).
-- The slip header (slip №, date, type, odds, stake, potential winnings) must be visible; if a screenshot starts below it, ask Paolo for the top part. Never invent a slip number.
+- The slip header (date, type, odds, stake, potential winnings) must be visible; if a screenshot starts below it, ask Paolo for the top part.
+- **book_slip_no**: exactly as shown. No number on the screenshot (msw.ph shows it only right after placing, not in Open bets): `null`, and the script makes our own key from account, type and placed time (`msw.ph-pat-system-2-5-1022-2208`, Paolo agreed 23 Oct 2026). Never type a number or key yourself. A number that doesn't fit its book's usual format is a PROBLEM: re-read it digit by digit.
 - **opening: true** only for tickets that were already placed and open when the book started (8 Oct 2026). Tickets placed after the opening entries are normal (false).
 
 ## 2. Dry run

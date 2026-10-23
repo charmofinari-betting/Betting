@@ -64,7 +64,9 @@ No row for an empty inbox. Run link in a cloud session: `echo "https://claude.ai
 ## Clerk mode (the hourly scheduled run, SPEC-inbox-clerk.md)
 Paolo is not watching. Everything above applies, plus:
 - The run's prompt is **not** his yes. Only Write-rule clean items go in; everything else waits.
-- **Push** (PushNotification, status proactive, one line < 200 chars, no markdown) **only when something waits**,
+- **Transcribe and dry-run every slip, even one you expect to ask about**: the dry run tells you what's really unclear (and the likely book for a slip with no book name). Ask only what the dry run leaves open.
+- Accounts come from the Accounts tab via the dry run, never from grepping code or docs.
+- **Push** (PushNotification, status proactive, one line < 200 chars, plain text: no markdown, no tags) **only when something waits**,
   leading with what he must answer: `2 need you: msw 'Corner Handicap - Match' = corners handicap?; Tish slip cut off at the top`.
   All clean or empty inbox → no push.
 - **08:07 run:** also `clerk.py remind`; for any `REMIND` ids push one line: `Still waiting since yesterday: <short list>`.

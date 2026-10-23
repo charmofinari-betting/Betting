@@ -22,6 +22,7 @@ TAB = "Clerk"
 HEADER = ["Run at (PHT)", "By", "Files seen", "Logged", "Waiting", "Waiting file ids", "Reminded", "Run link"]
 FIRST = 4
 LOCK_MINUTES = 30
+ANSWERED = "answered: "
 REMIND_AFTER = timedelta(hours=24)
 FMT = "%d %b %Y %H:%M"
 
@@ -64,12 +65,16 @@ def due_reminders(rows, at):
 
 
 def clear_updates(rows, ids):
-    """{sheet row: new Waiting-file-ids value} removing ids from every row that lists them."""
+    """{sheet row: (new Waiting-file-ids value, new Waiting text or None)} removing ids from every row
+    that lists them. A row left with no ids gets its question marked "answered: "."""
     out = {}
     for n, r in enumerate(rows, start=FIRST):
-        cur = [i.strip() for i in (list(r) + [""] * 6)[5].split(",") if i.strip()]
+        r = list(r) + [""] * 6
+        cur = [i.strip() for i in r[5].split(",") if i.strip()]
         if any(i in ids for i in cur):
-            out[n] = ", ".join(i for i in cur if i not in ids)
+            left = ", ".join(i for i in cur if i not in ids)
+            text = r[4].strip()
+            out[n] = (left, f"{ANSWERED}{text}" if not left and text and not text.startswith(ANSWERED) else None)
     return out
 
 
@@ -79,8 +84,11 @@ def clear(ids, ws=None):
         return
     ws = ws or _ws(True)
     ups = clear_updates(ws.get_all_values()[FIRST - 1:], set(ids))
-    for row, val in sorted(ups.items()):
-        ws.update(range_name=f"F{row}", values=[[val]], value_input_option="RAW")
+    for row, (val, text) in sorted(ups.items()):
+        if text is None:
+            ws.update(range_name=f"F{row}", values=[[val]], value_input_option="RAW")
+        else:
+            ws.update(range_name=f"E{row}:F{row}", values=[[text, val]], value_input_option="RAW")
     print(f"Clerk: cleared from waiting in rows {', '.join(map(str, sorted(ups)))}" if ups else "Clerk: nothing waiting to clear")
 
 

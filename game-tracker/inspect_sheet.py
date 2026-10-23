@@ -37,7 +37,8 @@ def credentials(scopes):
 
 
 def client(scopes=READONLY):
-    return gspread.authorize(credentials(scopes))
+    # BackOffHTTPClient retries Google's 429 "quota exceeded" (60 reads/min) instead of crashing mid-run.
+    return gspread.authorize(credentials(scopes), http_client=gspread.BackOffHTTPClient)
 
 
 def main():
