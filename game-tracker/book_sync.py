@@ -10,9 +10,14 @@ For each leg with a Tip ID and no result:
 Own picks (no Tip ID) are listed for Paolo.
 System tickets: once every leg has a result, their return (and return at tip odds) is computed
 and written to Bets U/V.
+Solaire only: it pays every winning combination of a system as soon as it is won, so while the ticket is
+open the combinations whose legs all have a result are summed into Bets Z ("Paid so far"); Balances adds
+that to Returned. Z is cleared when the ticket completes (U/V then carry the full return).
 """
 import re
 import sys
+from itertools import combinations
+from math import prod
 
 from log_bets import SlipParseError, parse_slip_market, system_return, tip_rows
 from log_picks import SHEETS
@@ -102,6 +107,39 @@ def plan_systems(bets, legs, leg_results):
     return out
 
 
+PAYS_AS_WON = {"Solaire"}
+PAID_COL = "Z"
+
+
+def plan_paid(bets, legs, leg_results):
+    """Open Solaire system tickets: (row, slip, paid so far); paid = combinations already fully decided."""
+    by_slip = {}
+    for i, r in enumerate(legs, start=2):
+        r = r + [""] * (14 - len(r))
+        if r[LEG["slip"]]:
+            res = leg_results.get(i) or r[LEG["result"]]
+            by_slip.setdefault(r[LEG["slip"]], []).append(factor(res, float(r[LEG["odds"]].replace(",", ""))) if res else None)
+    out = []
+    for i, b in enumerate(bets, start=2):
+        b = b + [""] * (26 - len(b))
+        m = re.match(r"^System (\d+)/(\d+)$", b[3])
+        if not b[0] or b[2] not in PAYS_AS_WON or not m:
+            continue
+        f = by_slip.get(b[0], [])
+        k, stake = int(m[1]), float(b[4].replace(",", ""))
+        combos = list(combinations(f, k))
+        if not combos:
+            continue
+        per = stake / len(combos)
+        paid = 0.0 if all(None in c for c in combos) else round(sum(per * prod(c) for c in combos if None not in c), 2)
+        done = all(x is not None for x in f)
+        want = "" if done or not paid else paid
+        have = b[25].replace(",", "")
+        if str(want) != have and not (want == "" and have == ""):
+            out.append((i, b[0], want))
+    return out
+
+
 def main():
     apply = "--apply" in sys.argv
     from inspect_sheet import READONLY, READWRITE, client
@@ -116,12 +154,15 @@ def main():
 
     updates, lines, asks = plan_legs(legs, tips, scores)
     systems = plan_systems(bets, legs, updates)
+    paid = plan_paid(bets, legs, updates)
     print(f"[{book.title}] book sync {'APPLY' if apply else 'dry run'}: {len(updates)} legs to settle, "
           f"{len(systems)} system tickets complete, {len(asks)} need Paolo")
     for l in lines:
         print(f"  leg     {l}")
     for _, sid, ret, at_tip in systems:
         print(f"  system  {sid}: return {ret:,.2f} (at tip odds {at_tip:,.2f})")
+    for _, sid, amt in paid:
+        print(f"  paid    {sid}: Solaire paid so far {amt if amt == '' else format(amt, ',.2f')}")
     for a in asks:
         print(f"  ASK     {a}")
     if not apply:
@@ -132,7 +173,10 @@ def main():
     if systems:
         bets_ws.batch_update([{"range": f"U{row}:V{row}", "values": [[ret, at_tip]]} for row, _, ret, at_tip in systems],
                              value_input_option="RAW")
-    print(f"  written: {len(updates)} leg results, {len(systems)} system returns")
+    if paid:
+        bets_ws.batch_update([{"range": f"{PAID_COL}{row}", "values": [[amt]]} for row, _, amt in paid],
+                             value_input_option="RAW")
+    print(f"  written: {len(updates)} leg results, {len(systems)} system returns, {len(paid)} Solaire paid-so-far")
     from bets_refresh import refresh
     for line in refresh(book, apply=True, auto=True):
         print("  refresh " + line)
