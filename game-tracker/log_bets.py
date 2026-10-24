@@ -42,7 +42,7 @@ FLIP_OFFSETS = {"1xbet": (7, 8)}
 PHT_OFFSET = 8
 BOOK_START = datetime(2026, 10, 8)
 SLIP_STATUS = {"win": "Won", "won": "Won", "loss": "Lost", "lost": "Lost", "return": "Void", "refund": "Void",
-               "void": "Void", "half win": "Half Won", "half loss": "Half Lost", "half lost": "Half Lost"}
+               "void": "Void", "half win": "Half Won", "half won": "Half Won", "half-won": "Half Won", "half loss": "Half Lost", "half lost": "Half Lost"}
 TYPES = {1: "Single", 2: "Double", 3: "Treble"}
 
 
