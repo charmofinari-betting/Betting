@@ -243,9 +243,33 @@ def find_tip(leg_sel, sport, home, away, kickoff, tips, aliases=None):
     if same_market and leg_sel.line is not None:
         t = min(same_market, key=lambda t: abs(t.sel.line - leg_sel.line))
         return t, f"line moved: tip {t.sel.line:g}, taken {leg_sel.line:g}"
-    return None, (f"no tip with this market; tips on this match: "
-                  + ", ".join(f"{t.id} {t.sel.market} {t.sel.side} {'' if t.sel.line is None else f'{t.sel.line:g}'}"
-                              for t in same_match) if same_match else "match not in the tips")
+    if same_match:
+        return None, ("no tip with this market; tips on this match: "
+                      + ", ".join(f"{t.id} {t.sel.market} {t.sel.side} {'' if t.sel.line is None else f'{t.sel.line:g}'}"
+                                  for t in same_match))
+    likely = likely_tips(leg_sel, sport, home, away, kickoff, tips)
+    return None, ("match not in the tips" + (
+        "; likely " + " or ".join(f"{t.id} ({t.home} vs {t.away}, {t.sel.market} {t.sel.side}"
+                                  f"{'' if t.sel.line is None else f' {t.sel.line:g}'})" for t in likely)
+        + ": book spelling differs? If Paolo confirms, link it and add a team alias" if likely else ""))
+
+
+def likely_tips(leg_sel, sport, home, away, kickoff, tips, limit=2):
+    """Tips that are probably this leg under another team spelling (SW Bregenz / Schwarz-Weiß Bregenz):
+    same sport and kickoff (±3 h; ±36 h when a kickoff is unknown), and either both teams half-match
+    or one team matches and the market/side is the same. Only suggested, never linked by itself."""
+    out = []
+    for t in tips:
+        if t.sport != sport:
+            continue
+        window = 3 if t.kickoff and kickoff else 36
+        if t.kickoff and kickoff and abs((t.kickoff - kickoff).total_seconds()) > window * 3600:
+            continue
+        h, a = name_score(home, t.home), name_score(away, t.away)
+        same_bet = (t.sel.market, t.sel.period, t.sel.side) == (leg_sel.market, leg_sel.period, leg_sel.side)
+        if min(h, a) >= 0.5 or (max(h, a) >= 0.8 and same_bet):
+            out.append((same_bet, h + a, t))
+    return [t for *_, t in sorted(out, key=lambda x: (x[0], x[1]), reverse=True)[:limit]]
 
 
 def slip_offset(book, slip, tips, aliases=None):

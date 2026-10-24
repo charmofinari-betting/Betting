@@ -1,5 +1,5 @@
 import unittest
-from datetime import datetime
+from datetime import datetime, timedelta
 
 from log_bets import SlipParseError, TipRow, find_tip, parse_slip_market, plan, slip_offset, to_pht
 from parse import Selection
@@ -78,6 +78,18 @@ class FindTipTest(unittest.TestCase):
         self.assertIsNone(find_tip(Selection("Total", "FT", "Over", 169.5), "Basketball", "Real Madrid", "Virtus Bologna", KO, TIPS)[0])
         far = datetime(2026, 10, 20)
         self.assertIsNone(find_tip(Selection("Total", "FT", "Over", 169.5), "Basketball", "Bayern Munich", "Virtus Bologna", far, TIPS)[0])
+
+    def test_other_spelling_suggested_never_linked(self):
+        tips = TIPS + [TipRow("T-1637", KO, "Football", "FC Liefering", "Schwarz-Weiß Bregenz", Selection("Handicap", "FT", "Away", -0.5), 2.1, "", "m"),
+                       TipRow("T-1721", KO, "Football", "FC Epicentr Dunaivtsi", "Kudrivka", Selection("Handicap", "FT", "Home", -0.5), 2.0, "", "m")]
+        tip, note = find_tip(Selection("Handicap", "FT", "Away", -0.5), "Football", "FC Liefering", "SW Bregenz", KO, tips)
+        self.assertIsNone(tip)
+        self.assertIn("likely T-1637 (FC Liefering vs Schwarz-Weiß Bregenz, Handicap Away -0.5)", note)
+        tip, note = find_tip(Selection("Handicap", "FT", "Home", -0.5), "Football", "FC Epitsentr Kamianets-Podilskyi", "Kudrivka", KO, tips)
+        self.assertIn("likely T-1721", note)
+        far = KO + timedelta(hours=5)
+        self.assertEqual(find_tip(Selection("Handicap", "FT", "Home", -0.5), "Football", "FC Epitsentr", "Kudrivka", far, tips)[1],
+                         "match not in the tips")
 
 
 SLIP = {"book_slip_no": "1", "placed": "2026-10-07 18:34", "account": "1xbet PHP", "stake": 1000, "total_odds": 3.532,

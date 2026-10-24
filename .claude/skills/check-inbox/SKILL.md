@@ -66,6 +66,8 @@ Paolo is not watching. Everything above applies, plus:
 - The run's prompt is **not** his yes. Only Write-rule clean items go in; everything else waits.
 - **Transcribe and dry-run every slip, even one you expect to ask about**: the dry run tells you what's really unclear (and the likely book for a slip with no book name). Ask only what the dry run leaves open.
 - Accounts come from the Accounts tab via the dry run, never from grepping code or docs.
+- Before a NEW WORDING question, re-check the leg's market text is copied exactly (log-bets "market" examples per book); most false stops were paraphrased markets.
+- A "likely T-…" in the dry run: ask "is it T-…?" (one tap for him), not "own pick?".
 - **Push** (PushNotification, status proactive, one line < 200 chars, plain text: no markdown, no tags) **only when something waits**,
   leading with what he must answer: `2 need you: msw 'Corner Handicap - Match' = corners handicap?; Tish slip cut off at the top`.
   All clean or empty inbox → no push.
