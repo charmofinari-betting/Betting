@@ -107,6 +107,14 @@ def shape_problems(s):
     return out
 
 
+def _mask_numbered_teams(text, home, away):
+    """Team names with digits in them (FA 2000, Jong PSV U21) blanked out, so their numbers aren't read as lines."""
+    for name in (home, away):
+        if name and re.search(r"\d", name):
+            text = re.sub(re.escape(name), "Xteamx", text, flags=re.I)
+    return text
+
+
 def find_wording(book, text, sport, wordings):
     """(key, entry or None): the word-list entry for this book's wording, sport-specific first."""
     from vocab import wording_key
@@ -126,7 +134,8 @@ def check_leg(leg, book, wordings, old_parser=None):
     probs = shape_problems(s)
     if probs:
         return None, probs
-    key, entry = find_wording(book, text, sport, wordings)
+    mtext = _mask_numbered_teams(text, home, away)
+    key, entry = find_wording(book, mtext, sport, wordings)
     team_market = entry and entry["market"] in ("Team total", "Team cards")
     if entry is None:
         probs.append(f"NEW WORDING {key!r} ({sport}): does it mean {s.market} {s.period}? "
@@ -153,11 +162,11 @@ def check_leg(leg, book, wordings, old_parser=None):
         if named and named != s.side:
             probs.append(f"side {s.side} but the text points to {named}")
     if s.line is not None and not (entry and entry["line"] is not None):
-        split = _split_line(text)
+        split = _split_line(mtext)
         if split is not None:
             if s.line != split:
                 probs.append(f"split line on the slip = {split:g}, sel says {s.line:g}")
-        elif not _line_shown(s.line, text):
+        elif not _line_shown(s.line, mtext):
             probs.append(f"line {s.line:g} is not on the slip text")
     if old_parser:
         try:

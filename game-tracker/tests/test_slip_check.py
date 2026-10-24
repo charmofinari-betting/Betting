@@ -141,3 +141,10 @@ class PlanWithVocabTest(unittest.TestCase):
 
 if __name__ == "__main__":
     unittest.main()
+
+
+class NumberedTeamTest(unittest.TestCase):
+    def test_team_name_with_digits_is_not_a_line(self):
+        from slip_check import _mask_numbered_teams, wording_of
+        self.assertEqual(wording_of(_mask_numbered_teams("FT 1x2: FA 2000", "FA 2000", "HIK Hellerup")),
+                         wording_of("FT 1x2: Barletta"))
