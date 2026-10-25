@@ -108,9 +108,9 @@ def shape_problems(s):
 
 
 def _mask_numbered_teams(text, home, away):
-    """Team names with digits in them (FA 2000, Jong PSV U21) blanked out, so their numbers aren't read as lines."""
+    """Team names with digits or brackets in them (FA 2000, Jong PSV U21, Sydney [W]) blanked out, so they aren't read as lines or wording."""
     for name in (home, away):
-        if name and re.search(r"\d", name):
+        if name and re.search(r"[\d\[\]()]", name):
             text = re.sub(re.escape(name), "Xteamx", text, flags=re.I)
     return text
 

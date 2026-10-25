@@ -148,3 +148,5 @@ class NumberedTeamTest(unittest.TestCase):
         from slip_check import _mask_numbered_teams, wording_of
         self.assertEqual(wording_of(_mask_numbered_teams("FT 1x2: FA 2000", "FA 2000", "HIK Hellerup")),
                          wording_of("FT 1x2: Barletta"))
+        self.assertEqual(wording_of(_mask_numbered_teams("[40:42]Live Betting Moneyline: Sydney [W]", "Townsville Fire [W]", "Sydney [W]")),
+                         wording_of("[3:0]Live Betting Moneyline: Gladiators Trier"))
