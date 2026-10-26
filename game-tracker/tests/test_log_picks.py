@@ -51,6 +51,12 @@ class PlanTest(unittest.TestCase):
         self.assertEqual([(r[11], r[12], r[13]) for r in p.new], [(-0.5, "HOME -0.5*", 2.4), (0.0, "HOME 0", 1.7)])
         self.assertEqual(p.duplicates[0][1], "this batch")
 
+    def test_ladder_with_ml_line_logs_a_moneyline_row(self):
+        p = plan([["Sweden", "Superettan", "Varbergs BoIS vs Helsingborgs IF", "HOME (ML, 3.5, 4.5*)", "2.50 / 1.90 / 1.85"]],
+                 EXISTING, VOCAB)
+        self.assertEqual(p.problems, [])
+        self.assertEqual([r[12] for r in p.new], ["ML HOME", "HOME 3.5", "HOME 4.5*"])
+
     def test_ladder_line_already_logged_is_skipped(self):
         p = plan([["Sweden", "Superettan", "IFK Norrköping vs OIF Sundsvall", "OVER (3.25, 3.5*)", "1.95 / 2.15"]],
                  EXISTING, VOCAB)

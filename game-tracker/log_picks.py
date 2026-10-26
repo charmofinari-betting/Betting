@@ -59,7 +59,7 @@ def expand_ladder(text, odds_s):
     odds = [x.strip() for x in odds_s.split("/")]
     if len(lines) != len(odds):
         raise ValueError(f"ladder has {len(lines)} lines but {len(odds)} odds")
-    return [(f"{m[1]} {ln}", o) for ln, o in zip(lines, odds)]
+    return [(f"ML {m[1]}" if ln.upper().rstrip("*") == "ML" else f"{m[1]} {ln}", o) for ln, o in zip(lines, odds)]
 
 
 def plan(picks, existing, vocab):
