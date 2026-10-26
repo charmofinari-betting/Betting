@@ -1,6 +1,6 @@
 import unittest
 
-from funds import label, parse_balances, pots, tab_values, totals
+from funds import COMBINED, combined_php, label, parse_balances, pots, tab_values, totals
 
 HEAD = [["Account"], ["TOTAL in ₱"]]
 # Account, Opening, Deposits, Withdrawals, Transfers, Bonus, Staked, Returned, Balance, Open, Cur, FX, Bal ₱, Open ₱, Holder
@@ -36,9 +36,29 @@ class TestFunds(unittest.TestCase):
 
     def test_tab_formulas_reference_criteria_rows(self):
         rows = tab_values(pots(self.acc))
-        self.assertEqual(rows[1], ["Pot", "Own PHP", "Own USDT", "Pat"])
+        self.assertEqual(rows[1], ["Pot", "Own PHP", "Own USDT", "Pat", COMBINED])
         self.assertIn("Balances!$O$3:$O,B$3,Balances!$K$3:$K,B$4", rows[4][1])
         self.assertTrue(rows[12][3].startswith("=D10+D6-D5-D11-D12"))
+
+    def test_combined_adds_every_php_pot_and_skips_crypto(self):
+        t = combined_php(self.acc)
+        self.assertEqual(t["capital"], 3500 + 5000)
+        self.assertEqual(t["open"], 1000)
+        # own +100, Pat -4000
+        self.assertAlmostEqual(t["pnl"], 100 - 4000)
+
+    def test_combined_column_formula_sums_php_columns_only(self):
+        rows = tab_values(pots(self.acc))
+        self.assertEqual(rows[3][-1], "PHP")
+        self.assertEqual(rows[4][-1], '=SUMIF($B$4:$D$4,"PHP",B5:D5)')
+        self.assertEqual(rows[-4][0], "Holder commissions and fees (Costs tab)")
+        self.assertIn("Costs!", rows[-4][-1])
+        self.assertEqual(rows[-3][-1], "=E13-E14")
+
+    def test_no_combined_column_with_a_single_php_pot(self):
+        acc = [a for a in self.acc if a["holder"] != "Pat"]
+        self.assertIsNone(combined_php(acc))
+        self.assertNotIn(COMBINED, tab_values(pots(acc))[1])
 
 
 if __name__ == "__main__":

@@ -20,6 +20,9 @@ from inspect_sheet import READONLY, READWRITE, client
 from setup_book import BOOK_KEY
 
 OWNER = "Paolo"
+COMBINED = "All PHP (mine)"
+COST_LABEL = "Holder commissions and fees (Costs tab)"
+NET_LABEL = "Betting P&L after holder costs"
 # label, formula over Balances columns (B..J as letters), key for the printed summary
 METRICS = [
     ("Capital (opening + deposits)", ["B", "C"], "capital"),
@@ -85,25 +88,35 @@ def fmt(x, cur):
     return f"{sign}₱{abs(x):,.2f}" if cur == "PHP" else f"{x:,.2f} {cur}"
 
 
+def combined_php(accounts):
+    """All PHP pots added together (Paolo's own books plus every holder): his money in total."""
+    parts = [totals(accounts, p) for p in pots(accounts) if p[1] == "PHP"]
+    return {k: sum(t[k] for t in parts) for k in parts[0]} if len(parts) > 1 else None
+
+
 def report(accounts):
     cols = pots(accounts)
     w = 16
-    lines = [f"{'':<36}" + "".join(f"{label(p):>{w}}" for p in cols)]
     ts = [totals(accounts, p) for p in cols]
+    both = combined_php(accounts)
+    head = [label(p) for p in cols] + ([COMBINED] if both else [])
+    lines = [f"{'':<36}" + "".join(f"{h:>{w}}" for h in head)]
     for name, _, k in METRICS:
         if k in ("transfers", "bonus") and not any(t[k] for t in ts):
             continue
-        lines.append(f"{name:<36}" + "".join(f"{fmt(t[k], p[1]):>{w}}" for p, t in zip(cols, ts)))
+        cells = [fmt(t[k], p[1]) for p, t in zip(cols, ts)] + ([fmt(both[k], "PHP")] if both else [])
+        lines.append(f"{name:<36}" + "".join(f"{c:>{w}}" for c in cells))
     return "\n".join(lines)
 
 
 def tab_values(cols):
     """Funds tab grid: rows 1-4 title/criteria, then one formula row per metric."""
     n = len(cols)
-    rows = [["Funds", "Live from Balances. Crypto in its own units; holders' money kept apart."] + [""] * (n - 1),
-            ["Pot"] + [label(p) for p in cols],
-            ["Holder"] + [p[0] for p in cols],
-            ["Currency"] + [p[1] for p in cols]]
+    combined = sum(1 for p in cols if p[1] == "PHP") > 1  # one extra column: all the PHP pots, mine in total
+    rows = [["Funds", "Live from Balances. Crypto in its own units; holders' money kept apart."] + [""] * (n - 1 + combined),
+            ["Pot"] + [label(p) for p in cols] + ([COMBINED] if combined else []),
+            ["Holder"] + [p[0] for p in cols] + (["All"] if combined else []),
+            ["Currency"] + [p[1] for p in cols] + (["PHP"] if combined else [])]
     at = {}
     for i, (name, src, k) in enumerate(METRICS):
         r = 5 + i
@@ -121,7 +134,14 @@ def tab_values(cols):
             else:  # pnl: rows for transfers and bonus come before it
                 row.append(f"={col}{at['value']}+{col}{at['withdrawn']}-{col}{at['capital']}"
                            f"-{col}{at['transfers']}-{col}{at['bonus']}")
+        if combined:
+            row.append(f'=SUMIF($B$4:${chr(ord("B") + n - 1)}$4,"PHP",B{r}:{chr(ord("B") + n - 1)}{r})')
         rows.append(row)
+    if combined:
+        c = chr(ord("B") + n)
+        r_cost, r_net = 5 + len(METRICS), 6 + len(METRICS)
+        rows.append([COST_LABEL] + [""] * n + [f'=SUMIF(Costs!$B$2:$B,"Holder*",Costs!$E$2:$E)'])
+        rows.append([NET_LABEL] + [""] * n + [f"={c}{at['pnl']}-{c}{r_cost}"])
     rows.append([""])
     rows.append(["Betting P&L counts open stakes at cost: profit only once tickets settle. "
                  "Re-run funds.py tab --apply when a new holder or currency appears."])
@@ -137,14 +157,17 @@ def write_tab(sh, rows):
     ws.update(range_name="A1", values=rows, value_input_option="USER_ENTERED")
     last = chr(ord("A") + len(rows[1]) - 1)
     end = 4 + len(METRICS)
+    extra = 2 if rows[1][-1] == COMBINED else 0
     ws.batch_format([
         {"range": "A1", "format": {"textFormat": {"bold": True, "fontSize": 14}}},
         {"range": f"A2:{last}2", "format": {"textFormat": {"bold": True}}},
         {"range": f"A3:{last}4", "format": {"textFormat": {"foregroundColor": {"red": .5, "green": .5, "blue": .5}}}},
-        {"range": f"B5:{last}{end}", "format": {"numberFormat": {"type": "NUMBER", "pattern": "#,##0.00"},
+        {"range": f"B5:{last}{end + extra}", "format": {"numberFormat": {"type": "NUMBER", "pattern": "#,##0.00"},
                                                  "horizontalAlignment": "RIGHT"}},
         {"range": f"A{end}:{last}{end}", "format": {"textFormat": {"bold": True}}},
-    ])
+    ] + ([{"range": f"A{end + 2}:{last}{end + 2}", "format": {"textFormat": {"bold": True}}},
+          {"range": f"{last}1:{last}{end + 2}", "format": {"backgroundColor": {"red": .94, "green": .96, "blue": .98}}}]
+         if extra else []))
     sh.batch_update({"requests": [
         {"updateSheetProperties": {"properties": {"sheetId": ws.id, "gridProperties": {"frozenColumnCount": 1, "frozenRowCount": 2}},
                                    "fields": "gridProperties.frozenColumnCount,gridProperties.frozenRowCount"}},

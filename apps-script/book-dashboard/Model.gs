@@ -153,6 +153,12 @@ function buildModel(data, now) {
     ['deposits', 'withdrawals', 'result', 'cash'].forEach(function (k) { x.summary[k] = r2(x.summary[k]); });
     x.cards.sort(byAccount);
   });
+  // all PHP pots together = Paolo's money in total (holders' pots are his money too)
+  var all = {deposits: 0, withdrawals: 0, result: 0, cash: 0};
+  [model.money.summary].concat(Object.keys(model.money.holders).map(function (h) { return model.money.holders[h].summary; }))
+    .forEach(function (x) { addMoney(all, x); });
+  ['deposits', 'withdrawals', 'result', 'cash'].forEach(function (k) { all[k] = r2(all[k]); });
+  model.money.all = all;
   sortCards(model.crypto);
   return model;
 }

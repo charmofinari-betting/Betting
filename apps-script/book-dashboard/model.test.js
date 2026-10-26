@@ -192,3 +192,15 @@ test('money: an emptied account that withdrew everything still shows', () => {
     balances: [mbal('A', '0.00', '1,000.00', '1,000.00', '0.00', '0.00', '0.00', '0.00', '0.00', '0.00')]}), NOW);
   assert.deepStrictEqual(m.money.own.map(c => c.account), ['A']);
 });
+
+test('money.all adds own PHP books and every holder PHP pot, not crypto', () => {
+  const m = buildModel(data({
+    accounts: [acc('1xbet PHP'), acc('1xbet USDT', 'Paolo', 'USDT'), acc('msw.ph Pat', 'Pat')],
+    balances: [
+      ['1xbet PHP', '1,000.00', '500.00', '300.00', '0', '0', '2,000.00', '2,100.00', '1,300.00', '0.00', 'PHP', '1', '', '', 'Paolo'],
+      ['1xbet USDT', '100.00', '0', '50.00', '0', '0', '100', '120', '70.00', '0.00', 'USDT', '60', '', '', 'Paolo'],
+      ['msw.ph Pat', '0', '5,000.00', '4,000.00', '0', '0', '5,000.00', '8,000.00', '4,000.00', '0.00', 'PHP', '1', '', '', 'Pat'],
+    ],
+  }), NOW);
+  assert.deepStrictEqual(m.money.all, {deposits: 6500, withdrawals: 4300, result: 3100, cash: 5300});
+});
