@@ -10,7 +10,7 @@ from dataclasses import dataclass
 MARKETS = (
     "Handicap", "Total", "Home team total", "Away team total", "Moneyline", "BTTS",
     "Corners", "Cards", "Home team cards", "Away team cards", "Cards handicap", "Corners handicap", "Set handicap", "HT/FT", "Win either half", "Win both halves", "Score in both halves",
-    "Both halves over",
+    "Both halves over", "1st set winner", "2nd set winner",
 )
 PERIODS = ("FT", "1H", "2H")
 SIDES = ("Home", "Away", "Over", "Under", "Yes", "No")

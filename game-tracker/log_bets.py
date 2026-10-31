@@ -93,9 +93,13 @@ def parse_slip_market(text, sport, home=None, away=None):
     m = re.match(r"^(?:\[\d+:\d+\]\s*)?(?:live betting )?spread:?\s*(.+?)\s+([+-]?\d+(?:\.\d+)?)$", x, flags=re.I)
     if m:  # Solaire "[80:76]Live Betting Spread: Girona -4.5" (score at bet time in brackets)
         return Selection("Handicap", "FT", _side_from_team(m[1], home, away, text), float(m[2]))
-    m = re.match(r"^(?:\[\d+:\d+\]\s*)?(?:live betting )?(?:moneyline|winner):?\s*(.+)$", x, flags=re.I)
+    m = re.match(r"^(?:\[\d+:\d+\]\s*)?(1st|2nd) set winner(?: live betting)?:?\s*(.+)$", x, flags=re.I)
+    if m:  # Solaire "[0:1] 2nd Set Winner Live Betting: Julia Riera" (settled by hand)
+        return Selection(f"{m[1].lower()} set winner", "FT", _side_from_team(m[2], home, away, text))
+    m = re.match(r"^(?:\[\d+:\d+\]\s*)?(?:live betting )?(?:moneyline|winner|1x2):?\s*(.+)$", x, flags=re.I)
     if m and (x.startswith("[") or x.lower().startswith(("live betting", "moneyline"))):
-        # Solaire "[3:0]Live Betting Moneyline: Gladiators Trier", "[0:0] Live Betting Winner: Catherine McNally"
+        # Solaire "[3:0]Live Betting Moneyline: Gladiators Trier", "[0:0] Live Betting Winner: Catherine McNally",
+        # "[0:0] Live Betting 1x2: Istra 1961"
         side = _side_from_team(m[1], home, away, text)
         return Selection("Handicap", "FT", side, -0.5) if sport == "Football" else Selection("Moneyline", "FT", side)
     m = re.match(r"^(.+?): team total cards o/u:?\s*(over|under) (\d+(?:\.\d+)?)$", x, flags=re.I)

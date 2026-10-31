@@ -20,9 +20,10 @@ moneyline ft ht incl including overtime head correct individual x w and of bet o
 rebounds assists innings game games margin""".split())
 SUFFIXES = {"st", "nd", "rd", "th", "up"}  # only after a number: "1st set", "(2UP)"
 LINE_SIDES = {"Over": "Under", "Under": "Over", "Yes": "No", "No": "Yes"}
-NO_LINE = {"Moneyline", "BTTS", "HT/FT", "Win either half", "Win both halves", "Score in both halves"}
+NO_LINE = {"Moneyline", "BTTS", "HT/FT", "Win either half", "Win both halves", "Score in both halves",
+           "1st set winner", "2nd set winner"}
 HOME_AWAY = {"Handicap", "Moneyline", "Cards handicap", "Corners handicap", "Set handicap", "HT/FT",
-             "Win either half", "Win both halves", "Score in both halves"}
+             "Win either half", "Win both halves", "Score in both halves", "1st set winner", "2nd set winner"}
 NUM = r"[+-]?\d+(?:\.\d+)?"
 
 
