@@ -1,122 +1,106 @@
-"""Close a month: one frozen snapshot of the month's results per pot. Dry run unless --apply.
+"""Month close: freeze what Paolo agreed for a month, per pot, in the 'Month close' tab.
 
-Usage: python month_close.py "Oct 2026" [--apply] [--replace]
+Usage:
+  python month_close.py setup [--apply]
+      add the tab (header only)
+  python month_close.py show "Oct 2026"
+      the month per pot as the sheet has it now (read-only)
+  python month_close.py add "Oct 2026" <pot> <next-month opening> [--note "..."] [--on "2 Nov 2026"] [--apply]
+      one row: the pot's result + bonus/adj. and costs for the month as they stand now,
+      and the opening he set for the next month. Pot = Mine (own PHP books) or a holder name.
 
-Writes plain values (not formulas) into the "Monthly close" tab, one block per month, so a closed
-month stays as it was agreed even if rows are edited later. --replace rewrites a month already there.
-Rules (Paolo, 2 Nov 2026):
-- a ticket belongs to the month it was PLACED, even if it settles the next month;
-- Bonus / Adjustment ledger lines and Costs rows count by their own date;
-- deposits, withdrawals and transfers are money moving, not P&L, and are left out;
-- crypto stays in its own units and is never added to the peso total;
-- Costs rows whose item starts with "Holder" are holder costs, the rest project costs.
-A pot with open tickets is flagged: its month is not final until they settle.
+Same rules as the dashboard's Months page (apps-script/book-dashboard/Model.gs, buildMonths):
+tickets count in the month they were placed (settled ones only), Ledger Bonus/Adjustment and Costs
+by date; a cost naming several holders is split evenly, one naming none is Mine's. PHP pots only.
+The dashboard flags a closed month whose live result later moves away from the row written here.
 """
+import re
 import sys
-from datetime import date
+from datetime import datetime
 
-from funds import OWNER, num
-from inspect_sheet import READONLY, READWRITE, client
-from setup_book import BOOK_KEY
+from vocab import PHT, open_book
 
-TAB = "Monthly close"
-HEADER = ["Month", "Line", "Tickets settled", "Open", "Staked", "Betting P&L", "Bonus / adj.", "Total",
-          "Currency", "Note"]
-PNL_TYPES = ("Bonus", "Adjustment")
+TAB = "Month close"
+HEADER = ["Month", "Pot", "Result at close", "Costs at close", "Next month opening", "Closed on", "Note"]
+OWNER = "Paolo"
+MINE = "Mine"
 
 
-def month_of(cell):
-    """'31 Oct 2026 10:32' -> 'Oct 2026'; anything that isn't a date -> ''."""
-    parts = str(cell).split()
-    return f"{parts[1]} {parts[2]}" if len(parts) >= 3 and parts[0].isdigit() else ""
+def num(s):
+    try:
+        return float(str(s).replace(",", "").replace("+", "") or 0)
+    except ValueError:
+        return 0.0
 
 
-def close_rows(month, accounts, bets, ledger, costs):
-    """The month's rows: one per pot, then the PHP total, costs and net. Values only."""
-    acc = {r[0]: (r[2], r[3]) for r in accounts[1:] if r and r[0]}
-    pots = []
-    for holder, cur in acc.values():
-        if (holder, cur) not in pots:
-            pots.append((holder, cur))
-    pots.sort(key=lambda p: (p[0] != OWNER, p[0] == OWNER and p[1] != "PHP"))
-    stats = {p: [0, 0, 0.0, 0.0, 0.0] for p in pots}  # settled n, open n, staked, P&L, bonus
+def month_of(s):
+    m = re.match(r"^(?:\d{1,2} )?([A-Z][a-z]{2}) (\d{4})", str(s).strip())
+    return f"{m[1]} {m[2]}" if m else ""
+
+
+def month_figures(accounts, bets, ledger, costs, month):
+    """{pot: {"result": result + bonus/adj., "costs": costs}} for one month, e.g. 'Oct 2026'."""
+    pot_of = {a[0]: (MINE if (a[2] or OWNER) == OWNER else a[2]) for a in accounts[1:] if a[0] and (a[3] or "PHP") == "PHP"}
+    pots = sorted(set(pot_of.values()))
+    out = {p: {"result": 0.0, "costs": 0.0} for p in pots}
     for r in bets[1:]:
-        if not r or not r[0] or month_of(r[1]) != month or r[2] not in acc:
-            continue
-        s = stats[acc[r[2]]]
-        if r[7] == "Open":
-            s[1] += 1
-        else:
-            s[0] += 1
-            s[2] += num(r[4])
-            s[3] += num(r[9].replace("+", ""))
+        if r[0] and r[2] in pot_of and month_of(r[1]) == month and r[7] not in ("", "Open"):
+            out[pot_of[r[2]]]["result"] += num(r[18])
     for r in ledger[1:]:
-        if r and r[1] in acc and r[2] in PNL_TYPES and month_of(r[0]) == month:
-            stats[acc[r[1]]][4] += num(r[3])
-
-    rows, php = [], 0.0
-    for p in pots:
-        n, op, staked, pnl, bonus = stats[p]
-        if not (n or op or bonus):
-            continue
-        holder, cur = p
-        line = f"Own {cur}" if holder == OWNER else (holder if cur == "PHP" else f"{holder} {cur}")
-        total = round(pnl + bonus, 2)
-        if cur == "PHP":
-            php += total
-        note = f"{op} open ticket(s): not final until they settle" if op else ""
-        rows.append([month, line, n, op, round(staked, 2), round(pnl, 2), round(bonus, 2), total, cur, note])
-    php = round(php, 2)
-    rows.append([month, "All PHP before costs", "", "", "", "", "", php, "PHP", "own books + every holder"])
-    hold = proj = 0.0
+        if r[1] in pot_of and month_of(r[0]) == month and r[2] in ("Bonus", "Adjustment"):
+            out[pot_of[r[1]]]["result"] += num(r[3])
     for r in costs[1:]:
-        if r and r[0] and month_of(r[0]) == month:
-            if r[1].startswith("Holder"):
-                hold += num(r[4])
-            else:
-                proj += num(r[4])
-    hold, proj = round(-hold, 2), round(-proj, 2)
-    rows.append([month, "Holder costs", "", "", "", "", "", hold, "PHP", "Costs tab: commissions, bonuses, fees"])
-    rows.append([month, "Project costs", "", "", "", "", "", proj, "PHP", "Costs tab: subscriptions etc."])
-    rows.append([month, "Net PHP", "", "", "", "", "", round(php + hold + proj, 2), "PHP",
-                 f"closed {date.today():%d %b %Y}"])
-    return rows
+        if not r[1] or month_of(r[0]) != month:
+            continue
+        named = [p for p in pots if p != MINE and re.search(rf"\b{re.escape(p)}\b", r[1])] or [MINE]
+        for p in named:
+            out[p]["costs"] += num(r[4]) / len(named)
+    return {p: {k: round(v, 2) for k, v in x.items()} for p, x in out.items()}
+
+
+def read(book):
+    return [book.worksheet(t).get_all_values() for t in ("Accounts", "Bets", "Ledger", "Costs")]
+
+
+def opt(argv, flag, default=""):
+    return argv[argv.index(flag) + 1] if flag in argv else default
 
 
 def main(argv):
-    month = argv[0]
-    apply, replace = "--apply" in argv, "--replace" in argv
-    sh = client(READWRITE if apply else READONLY).open_by_key(BOOK_KEY)
-    get = lambda t: sh.worksheet(t).get_all_values()
-    rows = close_rows(month, get("Accounts"), get("Bets"), get("Ledger"), get("Costs"))
-    for r in rows:
-        print("  " + " | ".join(f"{x:,.2f}" if isinstance(x, float) else str(x) for x in r[1:]))
-    if not apply:
-        print(f"\nDry run. Re-run with --apply to write {month} to the {TAB} tab.")
-        return
-    try:
-        ws = sh.worksheet(TAB)
-        have = ws.get_all_values()
-    except Exception:
-        ws = sh.add_worksheet(TAB, rows=200, cols=len(HEADER))
-        have = []
-    old = [r for r in have[1:] if r and r[0]]
-    keep = [r for r in old if r[0] != month]
-    if len(keep) < len(old) and not replace:
-        print(f"{month} is already in {TAB}; nothing written. Use --replace to rewrite it.")
-        return
-    body = [HEADER]
-    for r in keep + rows:  # one blank row between months
-        if len(body) > 1 and body[-1][0] != r[0]:
-            body.append([""] * len(HEADER))
-        body.append(r)
-    ws.clear()
-    ws.update(range_name="A1", values=body, value_input_option="USER_ENTERED")
-    ws.batch_format([
-        {"range": "A1:J1", "format": {"textFormat": {"bold": True}}},
-        {"range": f"E2:H{len(body)}", "format": {"numberFormat": {"type": "NUMBER", "pattern": "#,##0.00"}}},
-    ])
-    print(f"Written: {month} ({len(rows)} rows) to {TAB}.")
+    apply = "--apply" in argv
+    cmd = argv[0] if argv else ""
+    if cmd == "setup":
+        book = open_book(apply)
+        if TAB in [w.title for w in book.worksheets()]:
+            sys.exit(f"{TAB} already exists")
+        print(f"[{book.title}] {'APPLY' if apply else 'dry run'}: add tab {TAB}: {' | '.join(HEADER)}")
+        if apply:
+            ws = book.add_worksheet(TAB, rows=200, cols=len(HEADER))
+            ws.update(range_name="A1", values=[HEADER], value_input_option="RAW")
+            ws.freeze(rows=1)
+            print("  written")
+    elif cmd == "show":
+        month = month_of(argv[1])
+        for p, x in month_figures(*read(open_book()), month).items():
+            print(f"  {month}  {p:<8} result+bonus {x['result']:>14,.2f}   costs {x['costs']:>12,.2f}")
+    elif cmd == "add":
+        month, pot, opening = month_of(argv[1]), argv[2], num(argv[3])
+        book = open_book(apply)
+        fig = month_figures(*read(book), month)
+        if not month or pot not in fig:
+            sys.exit(f"unknown month or pot: {argv[1]!r} {pot!r} (pots: {', '.join(fig)})")
+        ws = book.worksheet(TAB)
+        rows = ws.get_all_values()
+        if any(r[:2] == [month, pot] for r in rows[1:]):
+            sys.exit(f"{month} {pot} is already closed; change that row by hand if it must move")
+        on = opt(argv, "--on") or datetime.now(PHT).strftime("%d %b %Y").lstrip("0")
+        row = [month, pot, f"{fig[pot]['result']:.2f}", f"{fig[pot]['costs']:.2f}", f"{opening:.2f}", on, opt(argv, "--note")]
+        print(f"[{book.title}] {'APPLY' if apply else 'dry run'}: {TAB} row {len(rows) + 1}: {' | '.join(row)}")
+        if apply:
+            ws.update(range_name=f"A{len(rows) + 1}", values=[row], value_input_option="RAW")
+            print("  written")
+    else:
+        sys.exit(__doc__)
 
 
 if __name__ == "__main__":

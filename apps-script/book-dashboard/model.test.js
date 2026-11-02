@@ -204,3 +204,69 @@ test('money.all adds own PHP books and every holder PHP pot, not crypto', () => 
   }), NOW);
   assert.deepStrictEqual(m.money.all, {deposits: 6500, withdrawals: 4300, result: 3100, cash: 5300});
 });
+
+// ---- months (Months page) ----
+const buildMonths = (d) => JSON.parse(JSON.stringify(ctx.module.exports.buildMonths(d)));
+
+function mbet(account, placed, result, stakePhp, plPhp, cur = 'PHP') {
+  const r = new Array(25).fill('');
+  r[0] = 'S-x'; r[1] = placed; r[2] = account; r[7] = result; r[15] = cur; r[17] = stakePhp; r[18] = plPhp;
+  return r;
+}
+function led(date, account, type, amount) { return [date, account, type, amount, 'Paolo', '']; }
+function cost(date, item, php) { return [date, item, php, 'PHP', php, '']; }
+function mdata({bets = [], ledger = [], costs = [], closes = []}) {
+  return {
+    accounts: [ACC_HEAD, acc('Solaire'), acc('bet88'), acc('1xbet USDT', 'Paolo', 'USDT'), acc('msw.ph Pat', 'Pat'), acc('bet88 Tish', 'Tish')],
+    bets: [new Array(25).fill('h'), ...bets],
+    ledger: [['Date', 'Account', 'Type', 'Amount', 'Pot', 'Note'], ...ledger],
+    costs: [['Date', 'Item', 'Amount', 'Currency', '₱ charged', 'Note'], ...costs],
+    closes: [['Month', 'Pot', 'Result at close', 'Costs at close', 'Next month opening', 'Closed on', 'Note'], ...closes],
+  };
+}
+
+test('months: tickets count in the month they were placed, open ones apart', () => {
+  const ms = buildMonths(mdata({bets: [
+    mbet('Solaire', '31 Oct 2026 23:50', 'Won', '1,000.00', '+900.00'),
+    mbet('Solaire', '1 Nov 2026 0:10', 'Lost', '500.00', '-500.00'),
+    mbet('bet88', '2 Nov 2026 10:00', 'Open', '200.00', ''),
+    mbet('msw.ph Pat', '30 Oct 2026 9:00', 'Partly won', '3,000.00', '-1,200.50'),
+    mbet('1xbet USDT', '30 Oct 2026 9:00', 'Won', '600.00', '+60.00', 'USDT'),
+  ]}));
+  assert.deepStrictEqual(ms.map(m => m.key), ['2026-10', '2026-11']);
+  const oct = ms[0], nov = ms[1];
+  assert.strictEqual(oct.label, 'Oct 2026');
+  assert.deepStrictEqual([oct.pots.Mine.tickets, oct.pots.Mine.staked, oct.pots.Mine.result], [1, 1000, 900]);
+  assert.strictEqual(oct.pots.Pat.result, -1200.5);
+  assert.strictEqual(oct.pots.Mine.roi, 0.9);
+  assert.deepStrictEqual([nov.pots.Mine.tickets, nov.pots.Mine.staked, nov.pots.Mine.result, nov.pots.Mine.open], [2, 500, -500, 200]);
+  assert.strictEqual(oct.all.result, -300.5); // crypto stays out of the peso totals
+});
+
+test('months: ledger money and costs by date; a cost naming two holders is split', () => {
+  const ms = buildMonths(mdata({
+    ledger: [led('8 Oct 2026', 'Solaire', 'Opening balance', '1,000.00'), led('9 Oct 2026', 'Solaire', 'Deposit', '500.00'),
+      led('31 Oct 2026', 'msw.ph Pat', 'Withdrawal', '2,000.00'), led('31 Oct 2026', 'msw.ph Pat', 'Adjustment', '-250.00'),
+      led('2 Nov 2026', 'Solaire', 'Transfer out', '300.00'), led('2 Nov 2026', 'bet88', 'Transfer in', '300.00'),
+      led('2 Nov 2026', 'bet88', 'Bonus', '10.00')],
+    costs: [cost('8 Oct 2026', 'Claude Pro subscription', '1,420.04'), cost('31 Oct 2026', 'Holder commission (Pat, msw.ph)', '5,000.00'),
+      cost('31 Oct 2026', 'Holder bonus (Pat and Tish)', '5,000.00')],
+  }));
+  const oct = ms[0], nov = ms[1];
+  assert.deepStrictEqual([oct.pots.Mine.deposits, oct.pots.Pat.withdrawals, oct.pots.Pat.bonus], [1500, 2000, -250]);
+  assert.deepStrictEqual([oct.pots.Mine.costs, oct.pots.Pat.costs, oct.pots.Tish.costs], [1420.04, 7500, 2500]);
+  assert.strictEqual(oct.pots.Pat.net, -7750); // result 0 + bonus -250 - costs 7,500
+  assert.deepStrictEqual([nov.pots.Mine.transfers, nov.pots.Mine.bonus], [0, 10]); // own-to-own transfer nets out
+});
+
+test('months: opening comes from the previous month close; drift flagged when a closed month changes', () => {
+  const ms = buildMonths(mdata({
+    bets: [mbet('msw.ph Pat', '30 Oct 2026 9:00', 'Won', '1,000.00', '+500.00'), mbet('msw.ph Pat', '1 Nov 2026 9:00', 'Lost', '100.00', '-100.00')],
+    closes: [['Oct 2026', 'Pat', '400.00', '5,000.00', '4,499.95', '2 Nov 2026', 'agreed']],
+  }));
+  const oct = ms[0], nov = ms[1];
+  assert.strictEqual(oct.pots.Pat.close.nextOpening, 4499.95);
+  assert.strictEqual(oct.pots.Pat.drift, 100); // live 500 vs 400 at close
+  assert.strictEqual(nov.pots.Pat.opening, 4499.95);
+  assert.strictEqual(nov.pots.Mine.opening, null);
+});

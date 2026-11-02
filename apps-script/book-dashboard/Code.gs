@@ -22,6 +22,13 @@ function doGet() {
     bets: readTab(book, 'Bets', 25),
     checks: readTab(book, 'Balance checks', 7)
   }, new Date());
+  model.months = buildMonths({
+    accounts: readTab(book, 'Accounts', 6),
+    bets: readTab(book, 'Bets', 25),
+    ledger: readTab(book, 'Ledger', 6),
+    costs: readTab(book, 'Costs', 6),
+    closes: readTab(book, 'Month close', 7)
+  });
   model.opened = Utilities.formatDate(new Date(), 'Asia/Manila', 'd MMM yyyy HH:mm');
   var t = HtmlService.createTemplateFromFile('Index');
   t.modelJson = JSON.stringify(model).replace(/</g, '\\u003c');

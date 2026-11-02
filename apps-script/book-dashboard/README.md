@@ -28,3 +28,5 @@ To check a book, screenshot its balance and drop it in Drive **Betting Inbox →
 ## Pages
 - **Books** (default): one card per account. Accounts with 0 cash and nothing open sit behind "Show empty" (a red card is never hidden there).
 - **Money**: per account, deposits (opening + deposits), withdrawals, bonus/adjustments, betting result (settled bets only) and open stakes, so it adds up to the cash figure. Read from the Balances tab only.
+- **Months**: one row per month to compare months, for all PHP pots or one pot (chips on top): tickets, staked, betting result, ROI, costs, net (= result + bonus/adj. − costs). Tap a month for its cards per pot: opening, deposits, withdrawals, result, costs, net. Tickets count in the month they were placed; Ledger lines and Costs by their date; crypto stays out.
+  - The **Month close** tab freezes a finished month per pot (result, costs, the next month's opening). Rows are added with `game-tracker/month_close.py add` on Paolo's word. If a closed month's live result later moves (a ticket corrected or added), its card shows "Changed by … since the close".

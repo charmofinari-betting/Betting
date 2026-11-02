@@ -38,6 +38,16 @@
   .tabs button.on { background:var(--ink); color:var(--bg); border-color:var(--ink); }
   .pos { color:var(--green); } .neg { color:var(--red); }
   .card .total { border-top:1px solid var(--line); margin-top:5px; padding-top:5px; font-weight:700; }
+  .chips { display:flex; flex-wrap:wrap; gap:6px; margin:10px 0 4px; }
+  .chips button { margin:0; padding:5px 12px; border-radius:16px; }
+  .chips button.on { background:var(--ink); color:var(--bg); border-color:var(--ink); }
+  .tbl { width:100%; overflow-x:auto; }
+  table { width:100%; border-collapse:collapse; font-size:13px; font-variant-numeric:tabular-nums; }
+  th, td { padding:7px 6px; text-align:right; border-bottom:1px solid var(--line); white-space:nowrap; }
+  th { color:var(--muted); font-weight:500; font-size:11px; text-transform:uppercase; letter-spacing:.04em; }
+  th:first-child, td:first-child { text-align:left; }
+  tr.sel td { background:var(--card); }
+  .warn { color:var(--amber); }
 </style>
 </head>
 <body>
@@ -87,7 +97,7 @@ function mcard(c) {
 }
 function mcards(list) { return '<div class="cards">' + list.map(mcard).join('') + '</div>'; }
 function show(t) {
-  ['books', 'money'].forEach(function (p) {
+  ['books', 'money', 'months'].forEach(function (p) {
     document.getElementById('p-' + p).classList.toggle('hidden', p !== t);
     document.getElementById('t-' + p).classList.toggle('on', p === t);
   });
@@ -95,7 +105,8 @@ function show(t) {
 
 var S = M.summary, h = '';
 h += '<h1>Books</h1><div class="tabs"><button id="t-books" class="on" onclick="show(\'books\')">Books</button>' +
-  '<button id="t-money" onclick="show(\'money\')">Money</button></div>';
+  '<button id="t-money" onclick="show(\'money\')">Money</button>' +
+  '<button id="t-months" onclick="show(\'months\')">Months</button></div>';
 h += '<div id="p-books"><div class="asof">Live from the sheet · opened ' + esc(M.opened) +
   (M.newestBet ? ' · newest ticket ' + esc(M.newestBet) : '') + (M.newestCheck ? ' · newest balance check ' + esc(M.newestCheck) : '') + '</div>';
 h += '<div class="strip">' +
@@ -137,7 +148,61 @@ Object.keys(Y.holders).sort().forEach(function (name) {
     ' · cash ' + money(u.cash, 'PHP') + '</div>' + mcards(x.cards);
 });
 h += '</div>';
+h += '<div id="p-months" class="hidden"></div>';
 document.getElementById('app').innerHTML = h;
+
+// ---- Months page ----
+var MO = (M.months || []).slice().reverse(), potSel = 'All', monthSel = MO.length ? MO[0].key : '';
+var POTNAME = {All: 'All my PHP pots', Mine: 'My books'};
+function pct(x) { return x === null ? '–' : (x > 0 ? '+' : '') + (x * 100).toFixed(1) + '%'; }
+function potOf(m, name) { return name === 'All' ? m.all : m.pots[name]; }
+function mrow(k, v) { return '<div class="row"><span>' + k + '</span><span>' + v + '</span></div>'; }
+function mpot(name, p) {
+  var h = '<div class="card"><div class="name"><span>' + esc(POTNAME[name] || name) + '</span><span>' + sgn(p.net, 'PHP') + '</span></div>';
+  if (p.opening != null) h += mrow('Opening', money(p.opening, 'PHP'));
+  h += mrow('Deposits', money(p.deposits, 'PHP')) + mrow('Withdrawals', money(p.withdrawals, 'PHP'));
+  if (p.transfers) h += mrow('Transfers', sgn(p.transfers, 'PHP'));
+  h += mrow('Tickets', p.tickets) + mrow('Staked (settled)', money(p.staked, 'PHP')) +
+    mrow('Betting result', sgn(p.result, 'PHP')) + mrow('ROI', pct(p.roi));
+  if (p.bonus) h += mrow('Bonus / adj.', sgn(p.bonus, 'PHP'));
+  if (p.costs) h += mrow('Costs / commission', money(-p.costs, 'PHP'));
+  if (p.open) h += mrow('Still open', money(p.open, 'PHP'));
+  h += '<div class="row total"><span>Net</span><span>' + sgn(p.net, 'PHP') + '</span></div>';
+  if (p.close) {
+    h += '<div class="note">Closed ' + esc(p.close.closedOn) + ' · next month opens at ' + money(p.close.nextOpening, 'PHP') +
+      (p.close.note ? ' · ' + esc(p.close.note) : '') + '</div>';
+    if (p.drift) h += '<div class="note warn">Changed by ' + signed(p.drift, 'PHP') + ' since the close (a ticket was corrected or added)</div>';
+  }
+  return h + '</div>';
+}
+function renderMonths() {
+  var names = ['All'];
+  MO.forEach(function (m) { Object.keys(m.pots).forEach(function (n) { if (names.indexOf(n) < 0) names.push(n); }); });
+  var h = '<div class="asof">Tickets count in the month they were placed · settled bets only · pesos only (crypto apart) · net = result + bonus − costs</div>';
+  h += '<div class="chips">' + names.map(function (n) {
+    return '<button class="' + (n === potSel ? 'on' : '') + '" onclick="potSel=\'' + esc(n) + '\';renderMonths()">' + esc(POTNAME[n] || n) + '</button>';
+  }).join('') + '</div>';
+  h += '<div class="tbl"><table><tr><th>Month</th><th>Tickets</th><th>Staked</th><th>Result</th><th>ROI</th><th>Costs</th><th>Net</th></tr>';
+  MO.forEach(function (m) {
+    var p = potOf(m, potSel);
+    h += '<tr class="' + (m.key === monthSel ? 'sel' : '') + '" onclick="monthSel=\'' + m.key + '\';renderMonths()"><td>' + esc(m.label) +
+      (p.drift ? ' <span class="warn">⚠</span>' : '') + (p.open ? ' <span class="asof">· open</span>' : '') + '</td><td>' + p.tickets +
+      '</td><td>' + money(p.staked, 'PHP') + '</td><td>' + sgn(p.result, 'PHP') + '</td><td>' + pct(p.roi) + '</td><td>' +
+      (p.costs ? money(-p.costs, 'PHP') : '–') + '</td><td>' + sgn(p.net, 'PHP') + '</td></tr>';
+  });
+  h += '</table></div>';
+  var m = MO.filter(function (x) { return x.key === monthSel; })[0];
+  if (m) {
+    h += '<h2>' + esc(m.label) + ' · tap a month above to switch</h2><div class="cards">' + mpot('All', m.all);
+    Object.keys(m.pots).forEach(function (n) {
+      var p = m.pots[n];
+      if (p.tickets || p.deposits || p.withdrawals || p.costs || p.bonus || p.close || p.opening != null) h += mpot(n, p);
+    });
+    h += '</div>';
+  }
+  document.getElementById('p-months').innerHTML = h;
+}
+renderMonths();
 </script>
 </body>
 </html>

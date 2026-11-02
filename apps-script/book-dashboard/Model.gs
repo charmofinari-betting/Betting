@@ -163,4 +163,108 @@ function buildModel(data, now) {
   return model;
 }
 
-if (typeof module !== 'undefined') module.exports = {buildModel: buildModel, parsePht: parsePht};
+// ---- Months page: performance per calendar month (PHT). Tickets count in the month they were placed;
+// Ledger lines and Costs by their date. PHP pots only (own books = 'Mine', each holder their own pot).
+// The 'Month close' tab freezes what was agreed for a month: its result and the next month's opening.
+
+var MONTH_NAMES = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+var MINE = 'Mine';
+var MONTH_FIELDS = ['tickets', 'staked', 'result', 'open', 'deposits', 'withdrawals', 'transfers', 'bonus', 'costs'];
+
+/** '31 Oct 2026 23:50' or 'Oct 2026' -> '2026-10', or ''. */
+function monthOf(s) {
+  var m = /^(?:\d{1,2} )?([A-Z][a-z]{2}) (\d{4})/.exec(String(s).trim());
+  if (!m || !(m[1] in MONTHS)) return '';
+  return m[2] + '-' + ('0' + (MONTHS[m[1]] + 1)).slice(-2);
+}
+
+function monthLabel(key) { return MONTH_NAMES[+key.slice(5) - 1] + ' ' + key.slice(0, 4); }
+
+function prevMonth(key) {
+  var y = +key.slice(0, 4), m = +key.slice(5) - 1;
+  if (m === 0) { y -= 1; m = 12; }
+  return y + '-' + ('0' + m).slice(-2);
+}
+
+function emptyPot() {
+  var p = {opening: null, close: null, drift: 0};
+  MONTH_FIELDS.forEach(function (k) { p[k] = 0; });
+  return p;
+}
+
+function finishPot(p) {
+  MONTH_FIELDS.forEach(function (k) { p[k] = r2(p[k]); });
+  p.net = r2(p.result + p.bonus - p.costs);
+  p.roi = p.staked ? Math.round(p.result / p.staked * 10000) / 10000 : null;
+  return p;
+}
+
+function buildMonths(data) {
+  var potOf = {}, pots = [MINE];
+  data.accounts.slice(1).forEach(function (a) {
+    if (!a[0] || (a[3] || BASE_CURRENCY) !== BASE_CURRENCY) return;
+    var pot = (a[2] || OWNER) === OWNER ? MINE : a[2];
+    potOf[a[0]] = pot;
+    if (pots.indexOf(pot) < 0) pots.push(pot);
+  });
+  var closes = data.closes.slice(1).filter(function (r) { return monthOf(r[0]) && r[1]; });
+  closes.forEach(function (r) { if (pots.indexOf(r[1]) < 0) pots.push(r[1]); });
+
+  var months = {};
+  function pot(key, name) {
+    var m = months[key] || (months[key] = {key: key, label: monthLabel(key), pots: {}});
+    pots.forEach(function (p) { if (!m.pots[p]) m.pots[p] = emptyPot(); });
+    return m.pots[name];
+  }
+
+  data.bets.slice(1).forEach(function (r) {
+    var key = monthOf(r[1]), name = potOf[r[2]];
+    if (!r[0] || !key || !name) return;
+    var p = pot(key, name);
+    p.tickets += 1;
+    if (r[7] === 'Open' || !r[7]) { p.open += num(r[17]); return; }
+    p.staked += num(r[17]);
+    p.result += num(r[18]);
+  });
+
+  var LEDGER = {'Opening balance': ['deposits', 1], 'Deposit': ['deposits', 1], 'Withdrawal': ['withdrawals', 1],
+    'Transfer in': ['transfers', 1], 'Transfer out': ['transfers', -1], 'Bonus': ['bonus', 1], 'Adjustment': ['bonus', 1]};
+  data.ledger.slice(1).forEach(function (r) {
+    var key = monthOf(r[0]), name = potOf[r[1]], how = LEDGER[r[2]];
+    if (!key || !name || !how) return;
+    pot(key, name)[how[0]] += how[1] * num(r[3]);
+  });
+
+  data.costs.slice(1).forEach(function (r) {
+    var key = monthOf(r[0]);
+    if (!key || !r[1]) return;
+    var named = pots.filter(function (p) { return p !== MINE && new RegExp('\\b' + p + '\\b').test(r[1]); });
+    if (!named.length) named = [MINE];
+    named.forEach(function (p) { pot(key, p).costs += num(r[4]) / named.length; });
+  });
+
+  closes.forEach(function (r) {
+    pot(monthOf(r[0]), r[1]).close = {resultAtClose: num(r[2]), costsAtClose: num(r[3]), nextOpening: num(r[4]),
+      closedOn: r[5] || '', note: r[6] || ''};
+  });
+
+  var out = Object.keys(months).sort().map(function (key) {
+    var m = months[key], all = emptyPot();
+    pots.forEach(function (name) {
+      var p = finishPot(m.pots[name]);
+      var before = months[prevMonth(key)];
+      if (before && before.pots[name] && before.pots[name].close) p.opening = before.pots[name].close.nextOpening;
+      if (p.close) {
+        var d = r2(p.result + p.bonus - p.close.resultAtClose);
+        p.drift = Math.abs(d) >= 0.01 ? d : 0;
+      }
+      MONTH_FIELDS.forEach(function (k) { all[k] += p[k]; });
+    });
+    m.all = finishPot(all);
+    delete m.all.opening; delete m.all.close; delete m.all.drift;
+    return m;
+  });
+  return out;
+}
+
+if (typeof module !== 'undefined') module.exports = {buildModel: buildModel, buildMonths: buildMonths, parsePht: parsePht};
