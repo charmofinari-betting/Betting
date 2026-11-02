@@ -215,13 +215,18 @@ function mbet(account, placed, result, stakePhp, plPhp, cur = 'PHP') {
 }
 function led(date, account, type, amount) { return [date, account, type, amount, 'Paolo', '']; }
 function cost(date, item, php) { return [date, item, php, 'PHP', php, '']; }
+const CLOSE_HEAD = ['Month', 'Pot', 'Tickets settled', 'Open', 'Staked', 'Betting P&L', 'Bonus / adj.', 'Result', 'Costs',
+  'Net', 'Next month opening', 'Currency', 'Closed on', 'Note'];
+function close(month, pot, result, costs, opening, cur = 'PHP') {
+  return [month, pot, '', '', '', '', '', result, costs, '', opening, cur, '2 Nov 2026', 'agreed'];
+}
 function mdata({bets = [], ledger = [], costs = [], closes = []}) {
   return {
     accounts: [ACC_HEAD, acc('Solaire'), acc('bet88'), acc('1xbet USDT', 'Paolo', 'USDT'), acc('msw.ph Pat', 'Pat'), acc('bet88 Tish', 'Tish')],
     bets: [new Array(25).fill('h'), ...bets],
     ledger: [['Date', 'Account', 'Type', 'Amount', 'Pot', 'Note'], ...ledger],
     costs: [['Date', 'Item', 'Amount', 'Currency', '₱ charged', 'Note'], ...costs],
-    closes: [['Month', 'Pot', 'Result at close', 'Costs at close', 'Next month opening', 'Closed on', 'Note'], ...closes],
+    closes: [CLOSE_HEAD, ...closes],
   };
 }
 
@@ -262,11 +267,14 @@ test('months: ledger money and costs by date; a cost naming two holders is split
 test('months: opening comes from the previous month close; drift flagged when a closed month changes', () => {
   const ms = buildMonths(mdata({
     bets: [mbet('msw.ph Pat', '30 Oct 2026 9:00', 'Won', '1,000.00', '+500.00'), mbet('msw.ph Pat', '1 Nov 2026 9:00', 'Lost', '100.00', '-100.00')],
-    closes: [['Oct 2026', 'Pat', '400.00', '5,000.00', '4,499.95', '2 Nov 2026', 'agreed']],
+    closes: [close('Oct 2026', 'Pat', '400.00', '5,000.00', '4,499.95'), close('Oct 2026', 'Tish', '0.00', '0.00', ''),
+      close('Oct 2026', 'Net PHP', '400.00', '5,000.00', ''), close('Oct 2026', 'Mine USDT', '60.00', '0.00', '100.00', 'USDT')],
   }));
   const oct = ms[0], nov = ms[1];
   assert.strictEqual(oct.pots.Pat.close.nextOpening, 4499.95);
   assert.strictEqual(oct.pots.Pat.drift, 100); // live 500 vs 400 at close
   assert.strictEqual(nov.pots.Pat.opening, 4499.95);
   assert.strictEqual(nov.pots.Mine.opening, null);
+  assert.strictEqual(nov.pots.Tish.opening, null); // closed without an opening given
+  assert.deepStrictEqual(Object.keys(oct.pots), ['Mine', 'Pat', 'Tish']); // summary and crypto rows are not pots
 });

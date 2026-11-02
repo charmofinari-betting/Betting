@@ -169,7 +169,8 @@ function mpot(name, p) {
   if (p.open) h += mrow('Still open', money(p.open, 'PHP'));
   h += '<div class="row total"><span>Net</span><span>' + sgn(p.net, 'PHP') + '</span></div>';
   if (p.close) {
-    h += '<div class="note">Closed ' + esc(p.close.closedOn) + ' · next month opens at ' + money(p.close.nextOpening, 'PHP') +
+    h += '<div class="note">Closed ' + esc(p.close.closedOn) +
+      (p.close.nextOpening != null ? ' · next month opens at ' + money(p.close.nextOpening, 'PHP') : '') +
       (p.close.note ? ' · ' + esc(p.close.note) : '') + '</div>';
     if (p.drift) h += '<div class="note warn">Changed by ' + signed(p.drift, 'PHP') + ' since the close (a ticket was corrected or added)</div>';
   }

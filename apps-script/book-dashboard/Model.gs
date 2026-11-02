@@ -165,7 +165,9 @@ function buildModel(data, now) {
 
 // ---- Months page: performance per calendar month (PHT). Tickets count in the month they were placed;
 // Ledger lines and Costs by their date. PHP pots only (own books = 'Mine', each holder their own pot).
-// The 'Month close' tab freezes what was agreed for a month: its result and the next month's opening.
+// The 'Monthly close' tab (written by game-tracker/month_close.py) freezes what was agreed for a month:
+// per pot its Result (betting P&L + bonus/adj.), Costs and the next month's opening. Summary rows and
+// non-PHP rows in that tab are not pots and are skipped here.
 
 var MONTH_NAMES = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
 var MINE = 'Mine';
@@ -207,8 +209,10 @@ function buildMonths(data) {
     potOf[a[0]] = pot;
     if (pots.indexOf(pot) < 0) pots.push(pot);
   });
-  var closes = data.closes.slice(1).filter(function (r) { return monthOf(r[0]) && r[1]; });
-  closes.forEach(function (r) { if (pots.indexOf(r[1]) < 0) pots.push(r[1]); });
+  // Monthly close columns: 0 Month, 1 Pot, 7 Result, 8 Costs, 10 Next month opening, 11 Currency, 12 Closed on, 13 Note
+  var closes = data.closes.slice(1).filter(function (r) {
+    return monthOf(r[0]) && pots.indexOf(r[1]) >= 0 && (!r[11] || r[11] === BASE_CURRENCY);
+  });
 
   var months = {};
   function pot(key, name) {
@@ -244,8 +248,8 @@ function buildMonths(data) {
   });
 
   closes.forEach(function (r) {
-    pot(monthOf(r[0]), r[1]).close = {resultAtClose: num(r[2]), costsAtClose: num(r[3]), nextOpening: num(r[4]),
-      closedOn: r[5] || '', note: r[6] || ''};
+    pot(monthOf(r[0]), r[1]).close = {resultAtClose: num(r[7]), costsAtClose: num(r[8]),
+      nextOpening: String(r[10]).trim() === '' ? null : num(r[10]), closedOn: r[12] || '', note: r[13] || ''};
   });
 
   var out = Object.keys(months).sort().map(function (key) {

@@ -27,7 +27,7 @@ function doGet() {
     bets: readTab(book, 'Bets', 25),
     ledger: readTab(book, 'Ledger', 6),
     costs: readTab(book, 'Costs', 6),
-    closes: readTab(book, 'Month close', 7)
+    closes: readTab(book, 'Monthly close', 14)
   });
   model.opened = Utilities.formatDate(new Date(), 'Asia/Manila', 'd MMM yyyy HH:mm');
   var t = HtmlService.createTemplateFromFile('Index');
